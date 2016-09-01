@@ -37,7 +37,7 @@ chemist-repository:
 # intentionally owned by root as it contains a remotely executable command
 chemist-configuration:
     file.managed:
-        - name: /opt/chemist/app.conf
+        - name: /opt/chemist/app.cfg
         - mode: 644
         - source:  salt://master-server/config/opt-chemist-app.conf
         - require:
