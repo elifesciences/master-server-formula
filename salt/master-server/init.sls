@@ -6,3 +6,45 @@ master-server-maintenance:
         - minute: '*' # every minute
         - onlyif:
             - test -d /opt/builder/
+
+chemist-repository:
+    builder.git_latest:
+        - name: git@github.com:elifesciences/chemist.git
+        - identity: {{ pillar.elife.projects_builder.key or '' }}
+        - rev: master
+        - branch: master
+        - target: /opt/chemist/
+        - force_fetch: True
+        - force_checkout: True
+        - force_reset: True
+        - fetch_pull_requests: True
+    
+    file.directory:
+        - name: /opt/chemist
+        - user: {{ pillar.elife.deploy_user.username }}
+        - group: {{ pillar.elife.deploy_user.username }}
+        - recurse:
+            - user
+            - group
+        - require:
+            - builder: chemist-repository
+
+    cmd.run:
+        - name: ./install.sh
+        - cwd: /opt/chemist
+        - user: {{ pillar.elife.deploy_user.username }}
+
+chemist-service:
+    file.managed:
+        - name: /etc/init/chemist.conf
+        - source: salt://master-server/config/etc-init-chemist.conf
+        - require:
+            - chemist-repository
+
+chemist-service-start:
+    cmd.run:
+        - name: |
+            stop chemist || echo "chemist was not running"
+            start chemist
+        - require:
+            - chemist-service
