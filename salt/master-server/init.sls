@@ -38,6 +38,7 @@ chemist-service:
     file.managed:
         - name: /etc/init/chemist.conf
         - source: salt://master-server/config/etc-init-chemist.conf
+        - template: jinja
         - require:
             - chemist-repository
 
