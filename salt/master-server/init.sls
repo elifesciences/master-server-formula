@@ -34,6 +34,15 @@ chemist-repository:
         - cwd: /opt/chemist
         - user: {{ pillar.elife.deploy_user.username }}
 
+# intentionally owned by root as it contains a remotely executable command
+chemist-configuration:
+    file.managed:
+        - name: /opt/chemist
+        - mode: 644
+        - source:  salt://master-server/config/opt-chemist-app.conf
+        - require:
+            - chemist-repository
+
 chemist-service:
     file.managed:
         - name: /etc/init/chemist.conf
