@@ -3,7 +3,8 @@ master-server-maintenance:
     cron.present:
         - identifier: master-server-maintenance
         - name: cd /opt/builder/scripts && ./update-master.sh
-        - minute: '*' # every minute
+        - minute: 0
+        - hour: '*' # every hour
         - onlyif:
             - test -d /opt/builder/
 
