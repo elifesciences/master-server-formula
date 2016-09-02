@@ -39,6 +39,7 @@ chemist-configuration:
     file.managed:
         - name: /opt/chemist/app.cfg
         - mode: 644
+        - user: root
         - source:  salt://master-server/config/opt-chemist-app.conf
         - require:
             - chemist-repository
