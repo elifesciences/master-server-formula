@@ -1,3 +1,3 @@
 master_server:
     chemist:
-        token: null
+        secret: null
