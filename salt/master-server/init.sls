@@ -41,6 +41,7 @@ chemist-configuration:
         - mode: 644
         - user: root
         - source:  salt://master-server/config/opt-chemist-app.conf
+        - template: jinja
         - require:
             - chemist-repository
 

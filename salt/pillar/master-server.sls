@@ -1,2 +1,3 @@
 master_server:
-    no: data
+    chemist:
+        token: null
