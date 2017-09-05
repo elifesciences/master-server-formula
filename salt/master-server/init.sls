@@ -1,12 +1,9 @@
-# every 60 seconds
 master-server-maintenance:
     cron.present:
         - identifier: master-server-maintenance
         - name: /opt/update-master.sh
         - minute: 0
         - hour: '*' # every hour
-        - onlyif:
-            - test -d /opt/builder/
 
 chemist-repository:
     builder.git_latest:
