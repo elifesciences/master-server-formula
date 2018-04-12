@@ -8,5 +8,5 @@ WantedBy=multi-user.target
 [Service]
 Restart=on-failure
 User={{ pillar.elife.deploy_user.username }}
-WorkingDir=/opt/chemist
+WorkingDirectory=/opt/chemist
 ExecStart=/opt/chemist/start.sh 
