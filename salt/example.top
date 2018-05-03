@@ -2,3 +2,4 @@ base:
     '*':
         - elife
         - master-server
+        - master-server.vault

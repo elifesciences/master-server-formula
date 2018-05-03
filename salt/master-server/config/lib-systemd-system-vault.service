@@ -1,0 +1,18 @@
+[Unit]
+Description="vault, serving secrets to developers and instances"
+Documentation=https://vaultproject.io/docs/
+After=network.target
+ConditionFileNotEmpty=/etc/vault.hcl
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+# TODO: possibly lock down with:
+# https://www.digitalocean.com/community/tutorials/how-to-securely-manage-secrets-with-hashicorp-vault-on-ubuntu-16-04
+Restart=on-failure
+ExecStart=/usr/local/bin/vault server -config=/etc/vault.hcl
+ExecReload=/usr/local/bin/kill --signal HUP $MAINPID
+User=vault
+Group=vault
+KillSignal=SIGINT
