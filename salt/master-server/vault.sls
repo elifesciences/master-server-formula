@@ -79,6 +79,8 @@ vault-cli-client-environment-configuration:
         - template: jinja
         - mode: 644
 
+# smoke test fails if `vault operator init` has not been run
+# have to find another smoke test, as that operation outputs sensitive unseal keys and master tokens that a human needs to collect
 vault-smoke-test:
     cmd.run:
         - name: vault status | grep Sealed
