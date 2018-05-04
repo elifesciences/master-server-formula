@@ -39,6 +39,7 @@ vault-configuration:
     file.managed:
         - name: /etc/vault.hcl 
         - source: salt://master-server/config/etc-vault.hcl
+        - template: jinja
         - user: vault
         - group: vault
         - mode: 640
@@ -66,7 +67,7 @@ vault-systemd:
         - require:
             - cmd: vault-systemd
 
-{% if salt['elife.only_on_aws']() %}
+{% if salt['elife.cfg']('cfn.outputs.DomainName') %}
 {% set vault_addr = 'https://$(hostname):8200' %}
 {% else %}
 {% set vault_addr = 'http://localhost:8200' %}
