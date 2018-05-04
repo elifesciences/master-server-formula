@@ -83,3 +83,11 @@ vault-smoke-test:
     cmd.run:
         - name: vault status | grep Sealed
         - user: {{ pillar.elife.deploy_user.username }}
+
+vault-backup:
+    file.managed:
+        - name: /etc/ubr/vault-backup.yaml
+        - source: salt://master-server/config/etc-ubr-vault-backup.yaml
+        - makedirs: True
+        - require:
+            - install-ubr
