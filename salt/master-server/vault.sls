@@ -8,9 +8,19 @@ vault-binary:
         - source: https://releases.hashicorp.com/vault/{{ vault_version }}/{{ vault_archive }}
         - source_hash: md5={{ vault_hash }}
 
-    cmd.run:
-        - name: unzip {{ vault_archive }} && mv vault /usr/local/bin/vault
-        - cwd: /root
+    archive.extracted:
+        - name: /opt/vault/
+        - source: /root/{{ vault_archive }}
+        - enforce_toplevel: False
+        - require:
+            - file: vault-binary
+
+vault-symlink:
+    file.symlink:
+        - name: /usr/local/bin/vault
+        - target: /opt/vault/vault
+        - require:
+            - vault-binary
 
 vault-user:
     user.present: 
@@ -43,6 +53,7 @@ vault-systemd:
         - template: jinja
         - require:
             - vault-binary
+            - vault-symlink
             - vault-folder
             - vault-configuration
 
@@ -55,3 +66,5 @@ vault-systemd:
         - name: vault
         - require:
             - cmd: vault-systemd
+
+# TODO: add VAULT_ADDR
