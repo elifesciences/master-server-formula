@@ -67,4 +67,19 @@ vault-systemd:
         - require:
             - cmd: vault-systemd
 
-# TODO: add VAULT_ADDR
+{% if salt['elife.only_on_aws']() %}
+{% set vault_addr = 'https://$(hostname):8200' %}
+{% else %}
+{% set vault_addr = 'http://localhost:8200' %}
+{% endif %}
+vault-cli-client-environment-configuration:
+    file.managed:
+        - name: /etc/profile.d/vault-client.sh
+        - contents: export VAULT_ADDR={{ vault_addr }}
+        - template: jinja
+        - mode: 644
+
+vault-smoke-test:
+    cmd.run:
+        - name: vault status | grep Sealed
+        - user: {{ pillar.elife.deploy_user.username }}
