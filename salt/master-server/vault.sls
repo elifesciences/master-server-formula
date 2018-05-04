@@ -1,4 +1,3 @@
-
 {% set vault_version = '0.10.1' %}
 {% set vault_hash = 'f53ccc280650fed38a10e08c31565e9e' %}
 {% set vault_archive = 'vault_' + vault_version + '_linux_amd64.zip' %}
