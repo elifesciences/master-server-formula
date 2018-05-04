@@ -1,15 +1,3 @@
-## Vault useful commands
-##
-## Disables TLS locally;
-## $ export VAULT_ADDR=http://127.0.0.1:8200
-##
-## Initialization
-## $ vault operator init -key-shares=1 -key-threshold=1
-## $ vault unseal ... # unseal key printed during init
-##
-## Resetting (losing all stored secrets)
-## $ systemctl stop vault
-## $
 
 {% set vault_version = '0.10.1' %}
 {% set vault_hash = 'f53ccc280650fed38a10e08c31565e9e' %}
