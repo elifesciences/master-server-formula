@@ -79,11 +79,11 @@ vault-cli-client-environment-configuration:
         - template: jinja
         - mode: 644
 
-# smoke test fails if `vault operator init` has not been run
-# have to find another smoke test, as that operation outputs sensitive unseal keys and master tokens that a human needs to collect
+# vault initialization requires a human, so the only thing we
+# can check on the first highstate is that a daemon is listening
 vault-smoke-test:
     cmd.run:
-        - name: vault status | grep Sealed
+        - name: nc -q0 -w1 -z localhost 8200
         - user: {{ pillar.elife.deploy_user.username }}
 
 vault-backup:
