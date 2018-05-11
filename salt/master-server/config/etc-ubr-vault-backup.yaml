@@ -1,2 +1,2 @@
 tar-gzipped:
-    - /var/lib/vault
+    - /var/lib/vault/**
