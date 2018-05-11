@@ -24,6 +24,8 @@ vault-symlink:
 vault-user:
     user.present: 
         - name: vault
+        - groups:
+            - vault
         - shell: /bin/false
 
 vault-folder:
@@ -83,7 +85,7 @@ vault-cli-client-environment-configuration:
 # can check on the first highstate is that a daemon is listening
 vault-smoke-test:
     cmd.run:
-        - name: nc -q0 -w1 -z localhost 8200
+        - name: wait_for_port 8200 10
         - user: {{ pillar.elife.deploy_user.username }}
 
 vault-backup:
