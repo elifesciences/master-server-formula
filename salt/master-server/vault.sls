@@ -24,6 +24,8 @@ vault-symlink:
 vault-user:
     user.present: 
         - name: vault
+        - groups:
+            - vault
         - shell: /bin/false
 
 vault-folder:
