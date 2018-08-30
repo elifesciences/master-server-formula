@@ -4,3 +4,4 @@ base:
         - elife.certificates
         - master-server
         - master-server.vault
+        - master-server.salt-vault
