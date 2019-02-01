@@ -69,7 +69,7 @@ vault-systemd:
         - require:
             - cmd: vault-systemd
 
-{% if not pillar.elife.env in ['dev', 'ci'] %}
+{% if pillar.elife.env != 'dev' %}
 {% set vault_addr = 'https://$(hostname):8200' %}
 {% else %}
 {% set vault_addr = 'http://localhost:8200' %}
