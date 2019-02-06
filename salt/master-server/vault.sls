@@ -1,5 +1,5 @@
-{% set vault_version = '0.10.1' %}
-{% set vault_hash = 'f53ccc280650fed38a10e08c31565e9e' %}
+{% set vault_version = '0.11.0' %}
+{% set vault_hash = 'ca9316e4864a9585f7c6507e38568053' %}
 {% set vault_archive = 'vault_' + vault_version + '_linux_amd64.zip' %}
 vault-binary:
     file.managed:
@@ -69,7 +69,7 @@ vault-systemd:
         - require:
             - cmd: vault-systemd
 
-{% if salt['elife.cfg']('cfn.outputs.DomainName') %}
+{% if pillar.elife.env != 'dev' %}
 {% set vault_addr = 'https://$(hostname):8200' %}
 {% else %}
 {% set vault_addr = 'http://localhost:8200' %}
