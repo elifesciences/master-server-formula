@@ -1,5 +1,5 @@
 {% if salt['elife.cfg']('cfn.outputs.DomainName') %}
-    {% set vault_addr = 'https://' + grains['localhost'] %}
+    {% set vault_addr = 'https://' + grains['localhost'] + ':8200' %}
 {% else %}
     {% set vault_addr = 'http://localhost:8200' %}
 {% endif %}
