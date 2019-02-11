@@ -9,7 +9,7 @@ salt-vault-config:
         - name: /etc/salt/master.d/vault.conf
         - source: salt://master-server/config/etc-salt-master.d-vault.conf
         - template: jinja
-        - defaults:
+        - context:
             vault_addr: {{ vault_addr }}
 
 salt-vault-peer-runner-conf:
@@ -21,3 +21,5 @@ salt-vault-ext-pillars:
     file.managed:
         - name: /etc/salt/master.d/vault_ext_pillar.conf
         - source: salt://master-server/config/etc-salt-master.d-vault_ext_pillar.conf
+        - context:
+            vault_addr: {{ vault_addr }}
