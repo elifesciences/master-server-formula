@@ -80,17 +80,30 @@ if __name__ == '__main__':
             __grains__ = {'project': 'elife-xpub'}
             __salt__ = {'vault.read_secret': self._vault_read_secret}
             self._vault_secret = {'default_answer': 42}
+            self._vault_key_read = None
         
         def _vault_read_secret(self, vault_key):
+            self._vault_key_read = vault_key
             return {'data': self._vault_secret}
 
         def test_builds_pillar_dictionary(self):
-            vault_pillar = ext_pillar('elife-xpub--staging--1', {}, 'secret/my-pillars')
+            vault_pillar = ext_pillar('elife-xpub--staging--1', {}, path='secret/my-pillars')
             self.assertEqual(vault_pillar, {'default_answer': 42})
 
         def test_builds_nested_pillar_dictionary(self):
             self._vault_secret = {'smtp.username': 'foo', 'smtp.password': 'bar'}
-            vault_pillar = ext_pillar('elife-xpub--staging--1', {}, 'secret/my-pillars')
+            vault_pillar = ext_pillar('elife-xpub--staging--1', {}, path='secret/my-pillars')
             self.assertEqual(vault_pillar, {'smtp': {'username': 'foo', 'password': 'bar'}})
+
+        def test_renders_a_dynamic_vault_key(self):
+            ext_pillar(
+                'elife-xpub--staging--1',
+                {
+                    'elife': {'env': 'staging'}
+                },
+                path='secret/my-pillars/{project}/{env}',
+                env_key=['elife', 'env']
+            )
+            self.assertEqual(self._vault_key_read, 'secret/my-pillars/elife-xpub/staging')
 
     unittest.main()
