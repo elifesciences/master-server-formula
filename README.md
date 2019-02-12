@@ -23,6 +23,7 @@ Once Vault is started, the current setup is needed to fully test it:
 
 - retrieve the Vault root token with `sudo journalctl -u vault`
 - update `pillar.master_server.vault.access_token` with this value
+- comment out the `root` policy for minions in `etc-salt-master.d-vault.conf` and re-provision it to both master and minion
 - (optional) add a pillar with `vault kv put secret/projects/master-server/dev number=42` to see it in action
 
 In ci/EC2, Vault is started in production mode, listening on 8200 via HTTPS.
