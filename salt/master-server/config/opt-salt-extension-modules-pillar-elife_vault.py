@@ -8,9 +8,9 @@ After the base Vault configuration is created, add the configuration below to
 the ext_pillar section in the Salt master configuration.
 .. code-block:: yaml
     ext_pillar:
-	- elife_vault:
-	     path: secret/data/projects/{project}/{env}
-	     env_key: ["elife", "env"]
+        - elife_vault:
+             path: secret/data/projects/{project}/{env}
+             env_key: ["elife", "env"]
 
 Each Vault key needs to have all the key-value pairs with the names you
 require. The dot ``.`` separates different nesting levels of the values:
@@ -26,6 +26,15 @@ import logging
 log = logging.getLogger(__name__)
 
 def ext_pillar(minion_id, pillar, path=None, env_key=None):
+    '''
+    Returns a (usually nested) dictionary of pillars to be merged to the existing ones. 
+
+    ``pillar`` are the existing pillars as a nested dictionary.
+
+    ``path`` is a string template indicating the Vault key to load to find pillars. The template supports ``project`` and ``env`` as placeholders.
+
+    ``env_key`` is a list of strings indicating a path to a pillar key that will be used to deduce the environment.
+    '''
     env = pillar
     for key in env_key:
         env = env[key]
