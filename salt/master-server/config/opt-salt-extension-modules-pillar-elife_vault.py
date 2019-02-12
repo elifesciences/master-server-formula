@@ -40,7 +40,12 @@ def ext_pillar(minion_id, pillar, path=None, env_key=None):
     '''
     vault_key = _render_vault_key(pillar, path, env_key)
     log.info("Reading vault_key: %s", vault_key)
-    vault_value = __salt__['vault.read_secret'](vault_key)
+    try:
+        vault_value = __salt__['vault.read_secret'](vault_key)
+    except Exception as e:
+        log.warn("Error accessing Vault (%s): %s", type(e), e.message)
+        return {}
+
     return _expand_vault_pillar(vault_value['data'])
 
 def _render_vault_key(pillar, path, env_key=None):
@@ -93,9 +98,12 @@ if __name__ == '__main__':
             __grains__ = {'project': 'elife-xpub'}
             __salt__ = {'vault.read_secret': self._vault_read_secret}
             self._vault_secret = {'default_answer': 42}
+            self._vault_exception = None
             self._vault_key_read = None
         
         def _vault_read_secret(self, vault_key):
+            if self._vault_exception:
+                raise self._vault_exception
             self._vault_key_read = vault_key
             return {'data': self._vault_secret}
 
@@ -118,5 +126,11 @@ if __name__ == '__main__':
                 env_key=['elife', 'env']
             )
             self.assertEqual(self._vault_key_read, 'secret/my-pillars/elife-xpub/staging')
+
+        def test_exceptions_are_caught_to_avoid_breaking_highstate(self):
+            self._vault_exception = Exception("Cannot read missing key")
+            vault_pillar = ext_pillar('elife-xpub--staging--1', {}, path='secret/my-pillars')
+            self.assertEqual(vault_pillar, {})
+            
 
     unittest.main()
