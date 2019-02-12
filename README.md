@@ -11,7 +11,23 @@ for a reference on how to integrate with the `builder` project.
 
 [MIT licensed](LICENCE.txt)
 
-## Vault useful commands
+## Vault integration
+
+This formula runs a Vault server that the Salt Master can access to populate pillars in addition to the ones provided on the filesystem.
+
+### Testing environment
+
+In development/Vagrant, Vault is started in `dev` mode, listening on 8200 via HTTP.
+
+Once Vault is started, the current setup is needed to fully test it:
+
+- retrieve the Vault root token with `sudo journalctl -u vault`
+- update `pillar.master_server.vault.access_token` with this value
+- (optional) add a pillar with `vault kv put secret/projects/master-server/dev number=42` to see it in action
+
+In ci/EC2, Vault is started in production mode, listening on 8200 via HTTPS.
+
+### Vault useful commands
 
 Disables TLS locally:
 
@@ -19,7 +35,7 @@ Disables TLS locally:
 $ export VAULT_ADDR=http://127.0.0.1:8200
 ```
 
-Initialization is necessary after the first installation. We are  using a simple single key setup rather than splitting the key with multiple people:
+Initialization is necessary after the first installation. We are using a simple single key setup rather than splitting the key with multiple people:
 
 ```
 $ vault operator init -key-shares=1 -key-threshold=1 # store the output!
@@ -55,3 +71,4 @@ $ sudo su
 # rm -r /var/lib/vault/*
 # systemctl start vault
 ```
+
