@@ -86,4 +86,11 @@ if __name__ == '__main__':
 
         def test_builds_pillar_dictionary(self):
             vault_pillar = ext_pillar('elife-xpub--staging--1', {}, 'secret/my-pillars')
+            self.assertEqual(vault_pillar, {'default_answer': 42})
+
+        def test_builds_nested_pillar_dictionary(self):
+            self._vault_secret = {'smtp.username': 'foo', 'smtp.password': 'bar'}
+            vault_pillar = ext_pillar('elife-xpub--staging--1', {}, 'secret/my-pillars')
+            self.assertEqual(vault_pillar, {'smtp': {'username': 'foo', 'password': 'bar'}})
+
     unittest.main()
