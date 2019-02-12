@@ -25,8 +25,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
-# TODO: remove vault_addr
-def ext_pillar(minion_id, pillar, path=None, env_key=None, vault_addr=None):
+def ext_pillar(minion_id, pillar, path=None, env_key=None):
     env = pillar
     for key in env_key:
         env = env[key]
