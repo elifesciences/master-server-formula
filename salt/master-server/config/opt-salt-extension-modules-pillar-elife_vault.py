@@ -15,10 +15,13 @@ the ext_pillar section in the Salt master configuration.
 Each Vault key needs to have all the key-value pairs with the names you
 require. The dot ``.`` separates different nesting levels of the values:
 .. code-block:: bash
-    $ vault write secret/projects/elife-xpub/prod smtp.username=foo smtp.password=my_password
+    $ vault write secret/projects/elife-xpub/staging smtp.username=foo smtp.password=my_password
 The above will result in ``pillar.smtp`` being available as a dictionary with two keys,
  which as for every external pillar will be merged with the rest of the pillars in the Salt master.
 
+This module assumes a versioned (V2) key value store is setup in Vault:
+https://www.vaultproject.io/docs/secrets/kv/kv-v2.html
+Notice the example for ``path`` has a ``secret/data/`` prefix which is specific for this store.
 '''
 
 import logging
@@ -35,10 +38,13 @@ def ext_pillar(minion_id, pillar, path=None, env_key=None):
 
     ``env_key`` is a list of strings indicating a path to a pillar key that will be used to deduce the environment.
     '''
-    env = pillar
-    for key in env_key:
-        env = env[key]
-    vault_key = path.format(project=__grains__['project'], env=env)
+    vault_key_context = {'project':__grains__['project']}
+    if env_key:
+        env = pillar
+        for key in env_key:
+            env = env[key]
+        vault_key_context['env'] = env
+    vault_key = path.format(**vault_key_context)
     log.info("Reading vault_key: %s", vault_key)
     vault_value = __salt__['vault.read_secret'](vault_key)
     vault_pillar = {}
@@ -62,3 +68,22 @@ def ext_pillar(minion_id, pillar, path=None, env_key=None):
         pillar_branch[key] = value
     return vault_pillar
 
+if __name__ == '__main__':
+    import unittest
+    class VaultExtPillarTest(unittest.TestCase):
+        def setUp(self):
+            '''
+            Stubs dependencies of the ext_pillar function that would be filled
+            in by Salt in a real environment
+            '''
+            global __grains__, __salt__
+            __grains__ = {'project': 'elife-xpub'}
+            __salt__ = {'vault.read_secret': self._vault_read_secret}
+            self._vault_secret = {'default_answer': 42}
+        
+        def _vault_read_secret(self, vault_key):
+            return {'data': self._vault_secret}
+
+        def test_builds_pillar_dictionary(self):
+            vault_pillar = ext_pillar('elife-xpub--staging--1', {}, 'secret/my-pillars')
+    unittest.main()
