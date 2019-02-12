@@ -59,10 +59,7 @@ def _expand_vault_pillar(data):
     '''
 
     vault_pillar = {}
-    for pillar_path in data:
-        log.debug("Adding pillar: %s", pillar_path)
-        # pillar_branch is a pointer within vault_pillar, 
-        # initially pointing to the 'root'
+    def _find_branch_and_key(pillar_path):
         pillar_branch = vault_pillar
         sections = pillar_path.split(".")
         key = sections[-1]
@@ -72,8 +69,15 @@ def _expand_vault_pillar(data):
                 pillar_branch[section] = {}
             # updates pointer
             pillar_branch = pillar_branch[section]
-        value = data[pillar_path]
-        pillar_branch[key] = value
+        return pillar_branch, key
+        
+    for pillar_path in data:
+        log.debug("Adding pillar: %s", pillar_path)
+        # pillar_branch is a pointer within vault_pillar, 
+        # initially pointing to the 'root'
+        pillar_branch, key = _find_branch_and_key(pillar_path)
+        pillar_branch[key] = data[pillar_path]
+
     return vault_pillar
 
 
