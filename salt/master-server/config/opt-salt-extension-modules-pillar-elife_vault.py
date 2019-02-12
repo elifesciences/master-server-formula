@@ -38,20 +38,28 @@ def ext_pillar(minion_id, pillar, path=None, env_key=None):
 
     ``env_key`` is a list of strings indicating a path to a pillar key that will be used to deduce the environment.
     '''
+    vault_key = _render_vault_key(pillar, path, env_key)
+    log.info("Reading vault_key: %s", vault_key)
+    vault_value = __salt__['vault.read_secret'](vault_key)
+    return _expand_vault_pillar(vault_value['data'])
+
+def _render_vault_key(pillar, path, env_key=None):
     vault_key_context = {'project':__grains__['project']}
     if env_key:
         env = pillar
         for key in env_key:
             env = env[key]
         vault_key_context['env'] = env
-    vault_key = path.format(**vault_key_context)
-    log.info("Reading vault_key: %s", vault_key)
-    vault_value = __salt__['vault.read_secret'](vault_key)
-    vault_pillar = {}
+    return path.format(**vault_key_context)
 
-    # expand the empty vault_pillar with dictionaries
+def _expand_vault_pillar(data):
+    '''
+    Expands the empty vault_pillar with dictionaries
     # {} => {'elife_xpub': {'smtp': {'username': 'foo'}}}
-    for pillar_path in vault_value['data']:
+    '''
+
+    vault_pillar = {}
+    for pillar_path in data:
         log.debug("Adding pillar: %s", pillar_path)
         # pillar_branch is a pointer within vault_pillar, 
         # initially pointing to the 'root'
@@ -64,9 +72,10 @@ def ext_pillar(minion_id, pillar, path=None, env_key=None):
                 pillar_branch[section] = {}
             # updates pointer
             pillar_branch = pillar_branch[section]
-        value = vault_value['data'][pillar_path]
+        value = data[pillar_path]
         pillar_branch[key] = value
     return vault_pillar
+
 
 if __name__ == '__main__':
     import unittest
