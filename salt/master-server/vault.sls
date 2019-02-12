@@ -66,6 +66,7 @@ vault-systemd:
 
     service.running:
         - name: vault
+        - enable: True
         - require:
             - cmd: vault-systemd
 
