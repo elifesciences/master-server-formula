@@ -60,6 +60,8 @@ def _expand_vault_pillar(data):
 
     vault_pillar = {}
     def _find_branch_and_key(pillar_path):
+        # pillar_branch is a pointer within vault_pillar, 
+        # initially pointing to the 'root'
         pillar_branch = vault_pillar
         sections = pillar_path.split(".")
         key = sections[-1]
@@ -73,8 +75,6 @@ def _expand_vault_pillar(data):
         
     for pillar_path in data:
         log.debug("Adding pillar: %s", pillar_path)
-        # pillar_branch is a pointer within vault_pillar, 
-        # initially pointing to the 'root'
         pillar_branch, key = _find_branch_and_key(pillar_path)
         pillar_branch[key] = data[pillar_path]
 
@@ -104,9 +104,9 @@ if __name__ == '__main__':
             self.assertEqual(vault_pillar, {'default_answer': 42})
 
         def test_builds_nested_pillar_dictionary(self):
-            self._vault_secret = {'smtp.username': 'foo', 'smtp.password': 'bar'}
+            self._vault_secret = {'smtp.username': 'foo', 'smtp.password': 'bar', 'orcid.secret': 'baz'}
             vault_pillar = ext_pillar('elife-xpub--staging--1', {}, path='secret/my-pillars')
-            self.assertEqual(vault_pillar, {'smtp': {'username': 'foo', 'password': 'bar'}})
+            self.assertEqual(vault_pillar, {'smtp': {'username': 'foo', 'password': 'bar'}, 'orcid': {'secret': 'baz'}})
 
         def test_renders_a_dynamic_vault_key(self):
             ext_pillar(
