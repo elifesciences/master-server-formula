@@ -17,6 +17,8 @@ This formula runs a Vault server that the Salt Master can access to populate pil
 
 ### Testing environment
 
+#### Vagrant
+
 In development/Vagrant, Vault is started in `dev` mode, listening on 8200 via HTTP.
 
 Once Vault is started, the current setup is needed to fully test it:
@@ -26,7 +28,19 @@ Once Vault is started, the current setup is needed to fully test it:
 - comment out the `root` policy for minions in `etc-salt-master.d-vault.conf` and re-provision it to both master and minion
 - (optional) add a pillar with `vault kv put secret/projects/master-server/dev number=42` to see it in action
 
+#### EC2
+
 In ci/EC2, Vault is started in production mode, listening on 8200 via HTTPS.
+
+A test can be performed by creating a masterless `master-server`:
+
+```
+ bldr masterless.launch:master-server,pillar-vault,standalone,master-server-formula@my_branch
+```
+
+`my_branch` is optional, as you can use `master`.
+
+
 
 ### Vault useful commands
 
