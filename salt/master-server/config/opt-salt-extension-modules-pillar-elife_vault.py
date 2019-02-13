@@ -1,9 +1,9 @@
 '''
-eLife Vault Pillar Module
+elife_vault Pillar Module
 
-This module allows pillar data to be from Hashicorp Vault.
-Below are noted extra configuration required for the pillar module, but the base
-configuration of Salt's own ``vault`` module must also be completed.
+This module allows pillar data to be populated from Hashicorp Vault.
+Below are noted configuration options required for this external pillar module;
+it depends on Salt's own ``vault`` module that must also be configured.
 After the base Vault configuration is created, add the configuration below to
 the ext_pillar section in the Salt master configuration.
 .. code-block:: yaml
@@ -19,7 +19,7 @@ require. The dot ``.`` separates different nesting levels of the values:
 The above will result in ``pillar.smtp`` being available as a dictionary with two keys,
  which as for every external pillar will be merged with the rest of the pillars in the Salt master.
 
-This module assumes a versioned (V2) key value store is setup in Vault:
+**This module assumes a versioned (V2) key value store is setup in Vault**:
 https://www.vaultproject.io/docs/secrets/kv/kv-v2.html
 Notice the example for ``path`` has a ``secret/data/`` prefix which is specific for this store.
 '''
