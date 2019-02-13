@@ -10,34 +10,51 @@ salt-extension-modules-elife_vault.py:
         - source: salt://master-server/config/opt-salt-extension-modules-pillar-elife_vault.py
         - makedirs: True
 
-# configure the minion too when testing master-server--dev
-{% if pillar.elife.env == 'dev' %}
-{% set configurations = ['master.d', 'minion.d'] %}
-{% else %}
-{% set configurations = ['master.d'] %}
-{% endif %}
-
-{% for configuration in configurations %}
-salt-vault-config-{{ configuration }}:
+salt-vault-config-master.d:
     file.managed:
-        - name: /etc/salt/{{ configuration }}/vault.conf
+        - name: /etc/salt/master.d/vault.conf
         - source: salt://master-server/config/etc-salt-master.d-vault.conf
         - template: jinja
         - context:
             vault_addr: {{ vault_addr }}
 
-salt-vault-peer-runner-conf-{{ configuration }}:
+salt-vault-peer-runner-conf-master.d:
     file.managed:
-        - name: /etc/salt/{{ configuration }}/peer_run.conf
+        - name: /etc/salt/master.d/peer_run.conf
         - source: salt://master-server/config/etc-salt-master.d-peer_run.conf
 
-salt-vault-ext-pillars-{{ configuration }}:
+salt-vault-ext-pillars-master.d:
     file.managed:
-        - name: /etc/salt/{{ configuration }}/vault_ext_pillar.conf
+        - name: /etc/salt/master.d/vault_ext_pillar.conf
         - source: salt://master-server/config/etc-salt-master.d-vault_ext_pillar.conf
         - template: jinja
         - context:
             vault_addr: {{ vault_addr }}
         - requires:
             - salt-extension-modules-elife_vault.py
-{% endfor %}
+
+# provide Vagrant and masterless instances with a connection to their own Vault
+{% if pillar.elife.env in ['dev', 'ci'] %}
+salt-vault-config-minion.d:
+    file.managed:
+        - name: /etc/salt/minion.d/vault.conf
+        - source: salt://master-server/config/etc-salt-master.d-vault.conf
+        - template: jinja
+        - context:
+            vault_addr: {{ vault_addr }}
+
+salt-vault-peer-runner-conf-minion.d:
+    file.managed:
+        - name: /etc/salt/minion.d/peer_run.conf
+        - source: salt://master-server/config/etc-salt-master.d-peer_run.conf
+
+salt-vault-ext-pillars-minion.d:
+    file.managed:
+        - name: /etc/salt/minion.d/vault_ext_pillar.conf
+        - source: salt://master-server/config/etc-salt-master.d-vault_ext_pillar.conf
+        - template: jinja
+        - context:
+            vault_addr: {{ vault_addr }}
+        - requires:
+            - salt-extension-modules-elife_vault.py
+{% endif %}
