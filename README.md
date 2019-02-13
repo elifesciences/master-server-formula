@@ -47,12 +47,19 @@ sudo git pull
 sudo salt-call state.highstate
 ```
 
-Vault is started automatically. The current setup is needed to fully test it:
+Vault is started automatically. The current setup needed to fully test it is:
 
 - init the vault `vault operator init -key-shares=1 -key-threshold=1` 
 - store the token in `.vault-token`
 - unseal the Vault `vault operator unseal` providing the unseal key just generated
+- manually modify `/etc/salt/minion.d/vault.conf` to insert the root token
+- `vault kv enable-versioning secret`
+- insert a secret with `vault kv put secret/answer number=42`
+- smoke test it with `sudo salt-call vault.read_secret secret/data/answer`
 
+Now insert a pillar secret and see it:
+- `vault kv put secret/projects/master-server/ci number=42`
+- `sudo salt-call pillar.get number`
 
 ### Vault useful commands
 
