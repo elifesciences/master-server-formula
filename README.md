@@ -61,6 +61,18 @@ Now insert a pillar secret and see it:
 - `vault kv put secret/projects/master-server/ci number=42`
 - `sudo salt-call pillar.get number`
 
+You can then setup the Salt master too:
+
+- manually modify `/etc/salt/master.d/vault.conf` to insert the root token
+- setup a secret with `vault kv put secret/projects/basebox/ci number=43`
+- uncomment `root` from `/etc/salt/master.d/vault.conf` to allow the a token to be generated for minions
+
+You can then attach a basebox to it:
+
+- `bldr launch:basebox,pillar-vault` (take care of changing `ec2.master_ip` in its project configuration pointing to the private ip of this `master-server`)
+- `bldr ssh:basebox--pillar-vault` will let you access a shell on that instance
+- from then you can run `sudo salt-call pillar.get number`
+
 ### Vault useful commands
 
 Disables TLS locally:
