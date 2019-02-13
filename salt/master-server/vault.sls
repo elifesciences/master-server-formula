@@ -66,11 +66,12 @@ vault-systemd:
 
     service.running:
         - name: vault
+        - enable: True
         - require:
             - cmd: vault-systemd
 
 {% if pillar.elife.env != 'dev' %}
-{% set vault_addr = 'https://' + grains['localhost'] + ':8200' %}
+{% set vault_addr = 'https://' + salt['elife.cfg']('cfn.outputs.DomainName') + ':8200' %}
 {% else %}
 {% set vault_addr = 'http://localhost:8200' %}
 {% endif %}
