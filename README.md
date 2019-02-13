@@ -40,6 +40,18 @@ A test can be performed by creating a masterless `master-server`:
 
 `my_branch` is optional, as you can use `master`.
 
+You can apply updates to the branch on the instance with:
+```
+cd /opt/formulas/master-server-formula
+sudo git pull
+sudo salt-call state.highstate
+```
+
+Vault is started automatically. The current setup is needed to fully test it:
+
+- init the vault `vault operator init -key-shares=1 -key-threshold=1` 
+- store the token in `.vault-token`
+- unseal the Vault `vault operator unseal` providing the unseal key just generated
 
 
 ### Vault useful commands
