@@ -15,4 +15,5 @@ listener "tcp" {
 {% endif %}
 }
 
+# https://hostname.org:8200/ui/
 ui = true
