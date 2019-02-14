@@ -41,7 +41,7 @@ def ext_pillar(minion_id, pillar, path=None, env_key=None):
     try:
         vault_key = _render_vault_key(pillar, path, env_key)
     except KeyError as e:
-        log.warn("Stack does not have a 'project' grain': %s", e)
+        log.warn("Stack %s does not have a grain: %s", __grains__.get('id'), e)
         return {}
     log.info("Reading vault_key: %s", vault_key)
     try:
@@ -105,6 +105,10 @@ if __name__ == '__main__':
             self._vault_exception = None
             self._vault_key_read = None
         
+        def _set_grains(self, grains):
+            global __grains__
+            __grains__ = grains
+
         def _vault_read_secret(self, vault_key):
             if self._vault_exception:
                 raise self._vault_exception
@@ -131,8 +135,13 @@ if __name__ == '__main__':
             )
             self.assertEqual(self._vault_key_read, 'secret/my-pillars/elife-xpub/staging')
 
-        def test_exceptions_are_caught_to_avoid_breaking_highstate(self):
+        def test_exceptions_on_accessing_vault_are_caught_to_avoid_breaking_highstate(self):
             self._vault_exception = Exception("Cannot read missing key")
+            vault_pillar = ext_pillar('elife-xpub--staging--1', {}, path='secret/my-pillars')
+            self.assertEqual(vault_pillar, {})
+
+        def test_missing_grains_are_caught_to_avoid_breaking_highstate(self):
+            self._set_grains({})
             vault_pillar = ext_pillar('elife-xpub--staging--1', {}, path='secret/my-pillars')
             self.assertEqual(vault_pillar, {})
             
