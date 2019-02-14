@@ -11,7 +11,7 @@ WantedBy=multi-user.target
 # TODO: possibly lock down with:
 # https://www.digitalocean.com/community/tutorials/how-to-securely-manage-secrets-with-hashicorp-vault-on-ubuntu-16-04
 Restart=on-failure
-ExecStart=/usr/local/bin/vault server {% if pillar.elife.env != 'dev' %}-config=/etc/vault.hcl{% else %}-dev{% endif %}
+ExecStart=/usr/local/bin/vault server -config=/etc/vault.hcl
 ExecReload=/usr/local/bin/kill --signal HUP $MAINPID
 User=vault
 Group=vault
