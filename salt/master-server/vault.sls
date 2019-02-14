@@ -150,6 +150,12 @@ vault-secret-key-value-store:
         - require:
             - vault-token-smoke-test
 
-# salt-vault.sls: create master-server policy
-# salt-vault.sls: create master-server token
-# salt-vault.sls: put master-server-token in right configuration
+vault-policies:
+    file.recurse:
+        - name: /home/{{ pillar.elife.deploy_user.username }}/vault-policies/
+        - source: salt://master-server/vault-policies/
+        - user: {{ pillar.elife.deploy_user.username }}
+        - file_mode: 444
+        - require:
+            - vault-token-smoke-test
+
