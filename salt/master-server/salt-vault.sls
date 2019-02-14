@@ -18,11 +18,6 @@ salt-vault-config-master.d:
         - context:
             vault_addr: {{ vault_addr }}
 
-salt-vault-peer-runner-conf-master.d:
-    file.managed:
-        - name: /etc/salt/master.d/peer_run.conf
-        - source: salt://master-server/config/etc-salt-master.d-peer_run.conf
-
 salt-vault-ext-pillars-master.d:
     file.managed:
         - name: /etc/salt/master.d/vault_ext_pillar.conf
@@ -42,11 +37,6 @@ salt-vault-config-minion.d:
         - template: jinja
         - context:
             vault_addr: {{ vault_addr }}
-
-salt-vault-peer-runner-conf-minion.d:
-    file.managed:
-        - name: /etc/salt/minion.d/peer_run.conf
-        - source: salt://master-server/config/etc-salt-master.d-peer_run.conf
 
 salt-vault-ext-pillars-minion.d:
     file.managed:
