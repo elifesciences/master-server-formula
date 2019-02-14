@@ -17,11 +17,12 @@ vault-policies-master-server:
 
 vault-token-master-server:
     cmd.run:
-        - name: vault token create -policy=master-server -display-name={{ salt['grains.get']('id') }} -format=json | jq -r .auth.client_token > /tmp/vault-token.master-server
+        - name: vault token create -policy=master-server -display-name={{ salt['grains.get']('id') }} -format=json | jq -r .auth.client_token > /tmp/.vault-token.master-server
         - user: {{ pillar.elife.deploy_user.username }}
         # TODO: do not execute on every highstate
         - require:
             - vault-policies-master-server
+
 
 salt-vault-config-master.d:
     file.managed:
@@ -30,7 +31,6 @@ salt-vault-config-master.d:
         - template: jinja
         - context:
             vault_addr: {{ vault_addr }}
-
 
 salt-extension-modules-elife_vault.py:
     file.managed:
