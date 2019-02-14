@@ -38,7 +38,11 @@ def ext_pillar(minion_id, pillar, path=None, env_key=None):
 
     ``env_key`` is a list of strings indicating a path to a pillar key that will be used to deduce the environment.
     '''
-    vault_key = _render_vault_key(pillar, path, env_key)
+    try:
+        vault_key = _render_vault_key(pillar, path, env_key)
+    except KeyError as e:
+        log.warn("Stack does not have a 'project' grain': %s", e)
+        return {}
     log.info("Reading vault_key: %s", vault_key)
     try:
         vault_value = __salt__['vault.read_secret'](vault_key)
