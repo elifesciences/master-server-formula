@@ -103,51 +103,53 @@ vault-backup:
 
 vault-init:
     cmd.run:
-        - name: vault operator init -key-shares=1 -key-threshold=1 | tee /tmp/vault-init.log
+        - name: vault operator init -key-shares=1 -key-threshold=1 > /tmp/vault-init.log
         - unless:
             - test -d /var/lib/vault/core
+        - require:
+            - vault-bootstrap-smoke-test
 
 vault-unseal:
     cmd.run:
-        - name: bash -c "vault operator unseal $(grep Unseal /tmp/vault-init.log | sed -e 's/.*: //g')"
+        - name: | 
+            grep Unseal /tmp/vault-init.log | sed -e 's/.*: //g' > /tmp/vault-unseal-key.log
+            bash -c 'vault operator unseal $(cat /tmp/vault-unseal-key.log)'
         - user: {{ pillar.elife.deploy_user.username }}
         - unless:
             - vault status
-        - requires:
+        - require:
             - vault-init
 
 vault-status-smoke-test:
     cmd.run:
         - name: vault status
         - user: {{ pillar.elife.deploy_user.username }}
-        - requires:
+        - require:
             - vault-unseal
 
 vault-root-token:
     cmd.run:
-        - name: grep "Initial Root Token" /tmp/vault-init.log | sed -e 's/.*: //g')" > /home/{{ pillar.elife.deploy_user.username }}/.vault-token
+        - name: |
+            grep "Initial Root Token" /tmp/vault-init.log | sed -e 's/.*: //g' > /home/{{ pillar.elife.deploy_user.username }}/.vault-token
         - user: {{ pillar.elife.deploy_user.username }}
         - onlyif:
             - test -e /tmp/vault-init.log
-        - requires:
+        - require:
             - vault-status-smoke-test
 
 vault-token-smoke-test:
     cmd.run:
-        - name: vault token lookup
+        - name: vault token lookup > /dev/null
         - user: {{ pillar.elife.deploy_user.username }}
-        - requires:
+        - require:
             - vault-root-token
 
-vault-log-cleanup:
-    file.absent:
-        - name: /tmp/vault-init.log
-        - onlyif:
-            - test -e /tmp/vault-init.log
-        - requires:
-             - vault-token-smoke-test
+vault-secret-key-value-store:
+    cmd.run:
+        - name: vault kv enable-versioning secret/
+        - require:
+            - vault-token-smoke-test
 
 # salt-vault.sls: create master-server policy
 # salt-vault.sls: create master-server token
 # salt-vault.sls: put master-server-token in right configuration
-# remove /tmp/vault-init.log and similar files

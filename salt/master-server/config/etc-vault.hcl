@@ -14,3 +14,5 @@ listener "tcp" {
     tls_disable = true
 {% endif %}
 }
+
+ui = true

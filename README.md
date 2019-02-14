@@ -15,22 +15,25 @@ for a reference on how to integrate with the `builder` project.
 
 This formula runs a Vault server that the Salt Master can access to populate pillars in addition to the ones provided on the filesystem.
 
+The initial setup leaves around files in `/tmp/vault-*.log` that contain credentials that the administrator should note down and remove from the filesystem.
+
+A root token is also stored in `~/.vault-token` to allow CLI administration commands to be executed.
+
 ### Testing environment
 
 #### Vagrant
 
-In development/Vagrant, Vault is started in `dev` mode, listening on 8200 via HTTP.
+In development/Vagrant, Vault is automatically started, listening on 8200 via HTTP.
 
 Once Vault is started, the current setup is needed to fully test it:
 
-- retrieve the Vault root token with `sudo journalctl -u vault`
 - update `pillar.master_server.vault.access_token` with this value
 - comment out the `root` policy for minions in `etc-salt-master.d-vault.conf` and re-provision it to both master and minion
 - (optional) add a pillar with `vault kv put secret/projects/master-server/dev number=42` to see it in action
 
 #### EC2
 
-In ci/EC2, Vault is started in production mode, listening on 8200 via HTTPS.
+In ci/EC2, Vault is automatically started, listening on 8200 via HTTPS.
 
 A test can be performed by creating a masterless `master-server`:
 
@@ -49,9 +52,6 @@ sudo salt-call state.highstate
 
 Vault is started automatically. The current setup needed to fully test it is:
 
-- init the vault `vault operator init -key-shares=1 -key-threshold=1` 
-- store the token in `.vault-token`
-- unseal the Vault `vault operator unseal` providing the unseal key just generated
 - manually modify `/etc/salt/minion.d/vault.conf` to insert the root token
 - `vault kv enable-versioning secret`
 - insert a secret with `vault kv put secret/answer number=42`
