@@ -48,8 +48,6 @@ salt-vault-ext-pillars-master.d:
         - name: /etc/salt/master.d/vault_ext_pillar.conf
         - source: salt://master-server/config/etc-salt-master.d-vault_ext_pillar.conf
         - template: jinja
-        - context:
-            vault_addr: {{ vault_addr }}
         - requires:
             - salt-extension-modules-elife_vault.py
 
@@ -69,8 +67,6 @@ salt-vault-ext-pillars-minion.d:
         - name: /etc/salt/minion.d/vault_ext_pillar.conf
         - source: salt://master-server/config/etc-salt-master.d-vault_ext_pillar.conf
         - template: jinja
-        - context:
-            vault_addr: {{ vault_addr }}
         - requires:
             - salt-extension-modules-elife_vault.py
 {% endif %}
