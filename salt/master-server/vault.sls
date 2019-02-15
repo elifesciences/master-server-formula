@@ -101,7 +101,7 @@ vault-backup:
         - require:
             - install-ubr
 
-{% set vault_init_log = pillar.elife.deploy_user.username ~ 'vault-init.log' %}
+{% set vault_init_log = '/home/' ~ pillar.elife.deploy_user.username ~ '/vault-init.log' %}
 
 vault-init:
     cmd.run:
@@ -136,10 +136,7 @@ vault-root-token:
         - name: |
             grep "Initial Root Token" {{ vault_init_log }} | sed -e 's/.*: //g' > /home/{{ pillar.elife.deploy_user.username }}/.vault-token
         - user: {{ pillar.elife.deploy_user.username }}
-        # TODO: substitute the `onlyif` with `creates`
-        #- creates: /home/{{ pillar.elife.deploy_user.username }}/.vault-token
-        - onlyif:
-            - test -e {{ vault_init_log }}
+        - creates: /home/{{ pillar.elife.deploy_user.username }}/.vault-token
         - require:
             - vault-status-smoke-test
 
