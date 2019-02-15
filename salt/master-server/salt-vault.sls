@@ -15,11 +15,13 @@ vault-policies-master-server:
         - require:
             - vault-policies
 
+{% set master_server_token_path = '/home/' ~ pillar.elife.deploy_user.username ~ '/.vault-token.master-server' %}
+
 vault-token-master-server:
     cmd.run:
-        - name: vault token create -policy=master-server -display-name={{ salt['grains.get']('id') }} -format=json | jq -r .auth.client_token > /tmp/.vault-token.master-server
+        - name: vault token create -policy=master-server -display-name={{ salt['grains.get']('id') }} -format=json | jq -r .auth.client_token > {{ master_server_token_path }}
         - user: {{ pillar.elife.deploy_user.username }}
-        # TODO: do not execute on every highstate
+        - creates: {{ master_server_token_path }}
         - require:
             - vault-policies-master-server
 
@@ -29,8 +31,11 @@ salt-vault-config-master.d:
         - name: /etc/salt/master.d/vault.conf
         - source: salt://master-server/config/etc-salt-master.d-vault.conf
         - template: jinja
+        - onlyif:
+            - test -e /tmp/.vault-token.master-server
         - context:
             vault_addr: {{ vault_addr }}
+            master_server_token_path: {{ master_server_token_path }}
 
 salt-extension-modules-elife_vault.py:
     file.managed:
@@ -57,6 +62,7 @@ salt-vault-config-minion.d:
         - template: jinja
         - context:
             vault_addr: {{ vault_addr }}
+            master_server_token_path: {{ master_server_token_path }}
 
 salt-vault-ext-pillars-minion.d:
     file.managed:
