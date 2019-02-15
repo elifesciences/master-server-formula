@@ -15,7 +15,7 @@ for a reference on how to integrate with the `builder` project.
 
 This formula runs a Vault server that the Salt Master can access to populate pillars in addition to the ones provided on the filesystem.
 
-The initial setup leaves around files in `/tmp/vault-*.log` that contain credentials that the administrator should note down and remove from the filesystem.
+The initial setup leaves around files in `/home/elife/vault-*.log` that contain credentials that the administrator should note down and remove from the filesystem.
 
 A root token is also stored in `~/.vault-token` to allow CLI administration commands to be executed.
 
@@ -25,12 +25,6 @@ A root token is also stored in `~/.vault-token` to allow CLI administration comm
 
 In development/Vagrant, Vault is automatically started, listening on 8200 via HTTP.
 
-Once Vault is started, the current setup is needed to fully test it:
-
-- update `pillar.master_server.vault.access_token` with this value
-- comment out the `root` policy for minions in `etc-salt-master.d-vault.conf` and re-provision it to both master and minion
-- (optional) add a pillar with `vault kv put secret/projects/master-server/dev number=42` to see it in action
-
 #### EC2
 
 In ci/EC2, Vault is automatically started, listening on 8200 via HTTPS.
@@ -38,7 +32,7 @@ In ci/EC2, Vault is automatically started, listening on 8200 via HTTPS.
 A test can be performed by creating a masterless `master-server`:
 
 ```
- bldr masterless.launch:master-server,pillar-vault,standalone,master-server-formula@my_branch
+bldr masterless.launch:master-server,pillar-vault,standalone,master-server-formula@my_branch
 ```
 
 `my_branch` is optional, as you can use `master`.
@@ -50,42 +44,35 @@ sudo git pull
 sudo salt-call state.highstate
 ```
 
-Vault is started automatically. The current setup needed to fully test it is:
+You can then attach a `basebox` to it to test the minions behavior:
 
-- manually modify `/etc/salt/minion.d/vault.conf` to insert the root token
-- `vault kv enable-versioning secret`
+```
+vault kv put secret/projects/basebox/ci number=42
+# change `ec2.master_ip` in this stack's project configuration,
+# pointing to the private ip of this `master-server`
+bldr launch:basebox,pillar-vault
+bldr ssh:basebox--pillar-vault 
+sudo salt-call pillar.get number
+```
+
+#### Exploratory testing tasks
+
+Vault is started automatically.
+
+To test Salt's `vault` module, read a secret through Salt:
+
 - insert a secret with `vault kv put secret/answer number=42`
 - smoke test it with `sudo salt-call vault.read_secret secret/data/answer`
 
-Now insert a pillar secret and see it:
-- `vault kv put secret/projects/master-server/ci number=42`
-- `sudo salt-call pillar.get number`
+To test the `elife_vault` module, read a pillar coming from Vault:
 
-You can then setup the Salt master too:
-
-- manually modify `/etc/salt/master.d/vault.conf` to insert the root token
-- setup a secret with `vault kv put secret/projects/basebox/ci number=43`
-- uncomment `root` from `/etc/salt/master.d/vault.conf` to allow the a token to be generated for minions
-
-You can then attach a basebox to it:
-
-- `bldr launch:basebox,pillar-vault` (take care of changing `ec2.master_ip` in its project configuration pointing to the private ip of this `master-server`)
-- `bldr ssh:basebox--pillar-vault` will let you access a shell on that instance
-- from then you can run `sudo salt-call pillar.get number`
+```
+# 'dev' locally rather than 'ci'
+vault kv put secret/projects/master-server/ci number=42
+sudo salt-call pillar.get number
+```
 
 ### Vault useful commands
-
-Disables TLS locally:
-
-```
-$ export VAULT_ADDR=http://127.0.0.1:8200
-```
-
-Initialization is necessary after the first installation. We are using a simple single key setup rather than splitting the key with multiple people:
-
-```
-$ vault operator init -key-shares=1 -key-threshold=1 # store the output!
-```
 
 Unsealing will be necessary after any reboot or restart of the vault daemon, as data is encrypted at rest:
 
@@ -93,12 +80,14 @@ Unsealing will be necessary after any reboot or restart of the vault daemon, as 
 $ vault operator unseal ... # unseal key printed during init
 ```
 
-Authentication is necessary from the point of view of a user to access a secret:
+Authentication is necessary, from the point of view of a user, to access secrets:
 
 ```
 $ vault login
 # (insert a valid token)
 ```
+
+This will create a `~/.vault-token` file.
 
 The token can just be the root token generated during initialization, but finer grained tokens can be issued.
 
@@ -117,4 +106,3 @@ $ sudo su
 # rm -r /var/lib/vault/*
 # systemctl start vault
 ```
-
