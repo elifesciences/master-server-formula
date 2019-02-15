@@ -116,6 +116,7 @@ vault-unseal:
         - name: | 
             grep Unseal {{ vault_init_log }} | sed -e 's/.*: //g' > /tmp/vault-unseal-key.log
             bash -c 'vault operator unseal $(cat /tmp/vault-unseal-key.log)'
+            rm /tmp/vault-unseal-key.log
         - user: {{ pillar.elife.deploy_user.username }}
         - onlyif:
             - test -e {{ vault_init_log }}
