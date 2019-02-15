@@ -101,9 +101,11 @@ vault-backup:
         - require:
             - install-ubr
 
+{% set vault_init_log = pillar.elife.deploy_user.username ~ 'vault-init.log' %}
+
 vault-init:
     cmd.run:
-        - name: vault operator init -key-shares=1 -key-threshold=1 > /tmp/vault-init.log
+        - name: vault operator init -key-shares=1 -key-threshold=1 > {{ vault_init_log }}
         - unless:
             - test -d /var/lib/vault/core
         - require:
@@ -112,9 +114,11 @@ vault-init:
 vault-unseal:
     cmd.run:
         - name: | 
-            grep Unseal /tmp/vault-init.log | sed -e 's/.*: //g' > /tmp/vault-unseal-key.log
+            grep Unseal {{ vault_init_log }} | sed -e 's/.*: //g' > /tmp/vault-unseal-key.log
             bash -c 'vault operator unseal $(cat /tmp/vault-unseal-key.log)'
         - user: {{ pillar.elife.deploy_user.username }}
+        - onlyif:
+            - test -e {{ vault_init_log }}
         - unless:
             - vault status
         - require:
@@ -130,10 +134,12 @@ vault-status-smoke-test:
 vault-root-token:
     cmd.run:
         - name: |
-            grep "Initial Root Token" /tmp/vault-init.log | sed -e 's/.*: //g' > /home/{{ pillar.elife.deploy_user.username }}/.vault-token
+            grep "Initial Root Token" {{ vault_init_log }} | sed -e 's/.*: //g' > /home/{{ pillar.elife.deploy_user.username }}/.vault-token
         - user: {{ pillar.elife.deploy_user.username }}
+        # TODO: substitute the `onlyif` with `creates`
+        #- creates: /home/{{ pillar.elife.deploy_user.username }}/.vault-token
         - onlyif:
-            - test -e /tmp/vault-init.log
+            - test -e {{ vault_init_log }}
         - require:
             - vault-status-smoke-test
 
