@@ -147,6 +147,7 @@ vault-token-smoke-test:
 vault-secret-key-value-store:
     cmd.run:
         - name: vault kv enable-versioning secret/
+        - user: {{ pillar.elife.deploy_user.username }}
         - require:
             - vault-token-smoke-test
 
