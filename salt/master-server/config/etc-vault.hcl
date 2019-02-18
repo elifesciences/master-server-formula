@@ -14,3 +14,6 @@ listener "tcp" {
     tls_disable = true
 {% endif %}
 }
+
+# https://hostname.org:8200/ui/
+ui = true
