@@ -91,6 +91,17 @@ This will create a `~/.vault-token` file.
 
 The token can just be the root token generated during initialization, but finer grained tokens can be issued.
 
+List all tokens:
+```
+vault list auth/token/accessors
+```
+
+The values returned are accessors, not the secret values of the tokens. They can be used to lookup information about the token:
+
+```
+vault token lookup -accessor ACCESSOR
+```
+
 Write or read a secret:
 
 ```
