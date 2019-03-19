@@ -44,7 +44,7 @@ salt-vault-config-master.d:
         - source: salt://master-server/config/etc-salt-master.d-vault.conf
         - template: jinja
         - onlyif:
-            - test -e /tmp/.vault-token.master-server
+            - test -e {{ master_server_token_path }}
         - context:
             vault_addr: {{ vault_addr }}
             master_server_token_path: {{ master_server_token_path }}
