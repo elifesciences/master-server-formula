@@ -16,15 +16,27 @@ vault-policies-master-server:
             - vault-policies
 
 {% set master_server_token_path = '/home/' ~ pillar.elife.deploy_user.username ~ '/.vault-token.master-server' %}
+{% set master_server_token_renewal_log = '/home/' ~ pillar.elife.deploy_user.username ~ '/vault-token-master-server-renewal.log' %}
+{% set master_server_token_renewal_period = '48h' %}
 
 vault-token-master-server:
     cmd.run:
-        - name: vault token create -policy=master-server -display-name={{ salt['grains.get']('id') }} -format=json | jq -r .auth.client_token > {{ master_server_token_path }}
+        - name: vault token create -policy=master-server -display-name={{ salt['grains.get']('id') }} -period={{ master_server_token_renewal_period }} -format=json | jq -r .auth.client_token > {{ master_server_token_path }}
         - user: {{ pillar.elife.deploy_user.username }}
         - creates: {{ master_server_token_path }}
         - require:
             - vault-policies-master-server
 
+vault-token-master-server-renewal:
+    file.managed:
+        - name: {{ master_server_token_renewal_log }}
+
+    cron.present:
+        - identifier: vault-token-master-server-renewal
+        - name: bash -c "VAULT_ADDR={{ vault_addr }} VAULT_TOKEN=$(cat {{ master_server_token_path }}) /usr/local/bin/vault token renew >> {{ master_server_token_renewal_log }} 2>&1"
+        - minute: random
+        - require:
+            - vault-token-master-server
 
 salt-vault-config-master.d:
     file.managed:
