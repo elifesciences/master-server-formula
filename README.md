@@ -19,6 +19,8 @@ The initial setup leaves around files in `/home/elife/vault-*.log` that contain 
 
 A root token is also stored in `~/.vault-token` to allow CLI administration commands to be executed.
 
+A reduced permission tokan is stored in `~/.vault-token.master-server` for the Salt master to use. This token is renewed so that it doesn't expire.
+
 ### Testing environment
 
 #### Vagrant
@@ -100,6 +102,12 @@ The values returned are accessors, not the secret values of the tokens. They can
 
 ```
 vault token lookup -accessor ACCESSOR
+```
+
+Lookup a token by its actual value, if you know it:
+
+```
+VAULT_TOKEN=$(cat .vault-token.master-server) vault token lookup
 ```
 
 Write or read a secret:
