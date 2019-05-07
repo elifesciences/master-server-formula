@@ -74,54 +74,7 @@ vault kv put secret/projects/master-server/ci number=42
 sudo salt-call pillar.get number
 ```
 
-### Vault useful commands
+See also:
 
-Unsealing will be necessary after any reboot or restart of the vault daemon, as data is encrypted at rest:
-
-```
-$ vault operator unseal ... # unseal key printed during init
-```
-
-Authentication is necessary, from the point of view of a user, to access secrets:
-
-```
-$ vault login
-# (insert a valid token)
-```
-
-This will create a `~/.vault-token` file.
-
-The token can just be the root token generated during initialization, but finer grained tokens can be issued.
-
-List all tokens:
-```
-vault list auth/token/accessors
-```
-
-The values returned are accessors, not the secret values of the tokens. They can be used to lookup information about the token:
-
-```
-vault token lookup -accessor ACCESSOR
-```
-
-Lookup a token by its actual value, if you know it:
-
-```
-VAULT_TOKEN=$(cat .vault-token.master-server) vault token lookup
-```
-
-Write or read a secret:
-
-```
-$ vault kv put secret/hello foo=world
-$ vault kv get secret/hello
-```
-
-Resetting Vault will lose all stored secrets, but it's useful during local troubleshooting and exemplifies where state is stored:
-
-```
-$ sudo su
-# systemctl stop vault
-# rm -r /var/lib/vault/*
-# systemctl start vault
-```
+* [it-admin](https://github.com/elifesciences.org/it-admin/vault.md) for day-to-day usage
+* [Vault docs](https://www.vaultproject.io/docs/)
