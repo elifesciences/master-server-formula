@@ -76,5 +76,7 @@ sudo salt-call pillar.get number
 
 See also:
 
+* [builder](https://github.com/elifesciences/builder/blob/master/docs/vault.md)
 * [it-admin](https://github.com/elifesciences.org/it-admin/vault.md) for day-to-day usage
 * [Vault docs](https://www.vaultproject.io/docs/)
+* [Vault secret engines](https://www.vaultproject.io/api/secret/)
