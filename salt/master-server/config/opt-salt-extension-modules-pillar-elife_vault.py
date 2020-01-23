@@ -47,7 +47,7 @@ def ext_pillar(minion_id, pillar, path=None, env_key=None):
     try:
         vault_value = __salt__['vault.read_secret'](vault_key)
     except Exception as e:
-        log.warn("Error accessing Vault (%s): %s", type(e), e.message)
+        log.warn("Error accessing Vault (%s): %s", type(e), str(e))
         return {}
 
     return _expand_vault_pillar(vault_value['data'])
