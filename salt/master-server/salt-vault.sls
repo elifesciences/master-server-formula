@@ -10,7 +10,7 @@
 vault-policies-master-server:
     cmd.run:
         - name: vault policy write master-server master-server.hcl
-        - user: {{ pillar.elife.deploy_user.username }}
+        - runas: {{ pillar.elife.deploy_user.username }}
         - cwd: /home/{{ pillar.elife.deploy_user.username }}/vault-policies/
         - require:
             - vault-policies
@@ -22,7 +22,7 @@ vault-policies-master-server:
 vault-token-master-server:
     cmd.run:
         - name: vault token create -policy=master-server -display-name={{ salt['grains.get']('id') }} -period={{ master_server_token_renewal_period }} -format=json | jq -r .auth.client_token > {{ master_server_token_path }}
-        - user: {{ pillar.elife.deploy_user.username }}
+        - runas: {{ pillar.elife.deploy_user.username }}
         - creates: {{ master_server_token_path }}
         - require:
             - vault-policies-master-server

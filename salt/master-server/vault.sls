@@ -91,7 +91,7 @@ vault-cli-client-environment-configuration:
 vault-bootstrap-smoke-test:
     cmd.run:
         - name: wait_for_port 8200 10
-        - user: {{ pillar.elife.deploy_user.username }}
+        - runas: {{ pillar.elife.deploy_user.username }}
 
 vault-backup:
     file.managed:
@@ -117,7 +117,7 @@ vault-unseal:
             grep Unseal {{ vault_init_log }} | sed -e 's/.*: //g' > /tmp/vault-unseal-key.log
             bash -c 'vault operator unseal $(cat /tmp/vault-unseal-key.log)'
             rm /tmp/vault-unseal-key.log
-        - user: {{ pillar.elife.deploy_user.username }}
+        - runas: {{ pillar.elife.deploy_user.username }}
         - onlyif:
             - test -e {{ vault_init_log }}
         - unless:
@@ -128,7 +128,7 @@ vault-unseal:
 vault-status-smoke-test:
     cmd.run:
         - name: vault status
-        - user: {{ pillar.elife.deploy_user.username }}
+        - runas: {{ pillar.elife.deploy_user.username }}
         - require:
             - vault-unseal
 
@@ -136,22 +136,24 @@ vault-root-token:
     cmd.run:
         - name: |
             grep "Initial Root Token" {{ vault_init_log }} | sed -e 's/.*: //g' > /home/{{ pillar.elife.deploy_user.username }}/.vault-token
-        - user: {{ pillar.elife.deploy_user.username }}
+        - runas: {{ pillar.elife.deploy_user.username }}
         - creates: /home/{{ pillar.elife.deploy_user.username }}/.vault-token
         - require:
             - vault-status-smoke-test
 
 vault-token-smoke-test:
     cmd.run:
-        - name: vault token lookup > /dev/null
-        - user: {{ pillar.elife.deploy_user.username }}
+        - name: |
+            env
+            vault token lookup > /dev/null
+        - runas: {{ pillar.elife.deploy_user.username }}
         - require:
             - vault-root-token
 
 vault-secret-key-value-store:
     cmd.run:
         - name: vault kv enable-versioning secret/
-        - user: {{ pillar.elife.deploy_user.username }}
+        - runas: {{ pillar.elife.deploy_user.username }}
         - require:
             - vault-token-smoke-test
 
@@ -159,7 +161,7 @@ vault-policies:
     file.recurse:
         - name: /home/{{ pillar.elife.deploy_user.username }}/vault-policies/
         - source: salt://master-server/vault-policies/
-        - user: {{ pillar.elife.deploy_user.username }}
+        - runas: {{ pillar.elife.deploy_user.username }}
         - file_mode: 444
         - require:
             - vault-token-smoke-test
