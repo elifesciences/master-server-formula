@@ -30,7 +30,7 @@ chemist-repository:
     cmd.run:
         - name: ./install.sh
         - cwd: /opt/chemist
-        - user: {{ pillar.elife.deploy_user.username }}
+        - runas: {{ pillar.elife.deploy_user.username }}
 
 # intentionally owned by root as it contains a remotely executable command
 chemist-configuration:
