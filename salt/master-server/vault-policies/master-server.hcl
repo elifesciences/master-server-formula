@@ -9,3 +9,7 @@ path "secret/data/projects/*" {
 path "secret/data/projects/" {
     capabilities = ["list"]
 }
+
+path "auth/token/create" {
+    capabilities = ["create", "update"]
+}
