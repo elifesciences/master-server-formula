@@ -11,6 +11,7 @@ the ext_pillar section in the Salt master configuration.
         - elife_vault:
              path: secret/data/projects/{project}/{env}
              env_key: ["elife", "env"]
+             dependent_projects: ["basebox"]
 
 Each Vault key needs to have all the key-value pairs with the names you
 require. The dot ``.`` separates different nesting levels of the values:
@@ -28,7 +29,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
-def ext_pillar(minion_id, pillar, path=None, env_key=None):
+def ext_pillar(minion_id, pillar, path=None, env_key=None, dependent_projects=None):
     '''
     Returns a (usually nested) dictionary of pillars to be merged to the existing ones. 
 
@@ -37,9 +38,11 @@ def ext_pillar(minion_id, pillar, path=None, env_key=None):
     ``path`` is a string template indicating the Vault key to load to find pillars. The template supports ``project`` and ``env`` as placeholders.
 
     ``env_key`` is a list of strings indicating a path to a pillar key that will be used to deduce the environment.
+
+    ``dependent_projects`` is a list of project names where Salt should hard fail in case Vault is not accessible.
     '''
     try:
-        vault_key = _render_vault_key(pillar, path, env_key)
+        project, vault_key = _render_vault_key(pillar, path, env_key)
     except KeyError as e:
         log.warn("Stack %s does not have a grain: %s", __grains__.get('id'), e)
         return {}
@@ -47,8 +50,12 @@ def ext_pillar(minion_id, pillar, path=None, env_key=None):
     try:
         vault_value = __salt__['vault.read_secret'](vault_key)
     except Exception as e:
-        log.warning("Error accessing Vault (%s): %s", type(e), str(e))
-        return {}
+        if project in dependent_projects:
+            log.warning("Error accessing Vault (%s) in dependent project %s: %s", project, type(e), str(e))
+            raise e
+        else:
+            log.warning("Error accessing Vault (%s): %s", type(e), str(e))
+            return {}
 
     return _expand_vault_pillar(vault_value['data'])
 
@@ -59,7 +66,7 @@ def _render_vault_key(pillar, path, env_key=None):
         for key in env_key:
             env = env[key]
         vault_key_context['env'] = env
-    return path.format(**vault_key_context)
+    return __grains__['project'], path.format(**vault_key_context)
 
 def _expand_vault_pillar(data):
     '''
