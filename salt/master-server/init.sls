@@ -43,12 +43,6 @@ chemist-configuration:
         - require:
             - chemist-repository
 
-chemist-service-upstart:
-    file.managed:
-        - name: /etc/init/chemist.conf
-        - source: salt://master-server/config/etc-init-chemist.conf
-        - template: jinja
-
 chemist-service-systemd:
     file.managed:
         - name: /lib/systemd/system/chemist.service
@@ -56,18 +50,10 @@ chemist-service-systemd:
         - template: jinja
 
 chemist-service-start:
-    {% if salt['grains.get']('oscodename') == 'trusty' %}
-    cmd.run:
-        - name: |
-            stop chemist || echo "chemist was not running"
-            start chemist
-    {% else %}
     cmd.run:
         - name: |
             systemctl stop chemist || echo "chemist was not running"
             systemctl start chemist
-    {% endif %}
         - require:
             - chemist-repository
-            - chemist-service-upstart
             - chemist-service-systemd

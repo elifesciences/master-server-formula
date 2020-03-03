@@ -1,1 +1,1 @@
-elifeFormula('master-server', '', null, ['s1804'])
+elifeFormula('master-server', '', null)
