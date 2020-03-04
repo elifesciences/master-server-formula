@@ -51,10 +51,10 @@ def ext_pillar(minion_id, pillar, path=None, env_key=None, dependent_projects=No
         vault_value = __salt__['vault.read_secret'](vault_key)
     except Exception as e:
         if project in dependent_projects:
-            log.warning("Error accessing Vault (%s) in dependent project %s: %s", project, type(e), str(e))
+            log.critical("Error accessing Vault (%s) in dependent project %s: %s", project, type(e), str(e))
             raise e
         else:
-            log.warning("Error accessing Vault (%s): %s", type(e), str(e))
+            log.warning("Error accessing Vault (%s) in project %s, skipping its pillars: %s", project, type(e), str(e))
             return {}
 
     return _expand_vault_pillar(vault_value['data'])
