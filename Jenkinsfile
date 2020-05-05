@@ -1,1 +1,1 @@
-elifeFormula('master-server', '', null)
+elifeFormula('master-server', '', null, ['snsalt'])
