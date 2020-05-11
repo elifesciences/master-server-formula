@@ -51,10 +51,22 @@ def ext_pillar(minion_id, pillar, path=None, env_key=None, dependent_projects=No
         vault_value = __salt__['vault.read_secret'](vault_key)
     except Exception as e:
         if project in dependent_projects:
-            log.critical("Error accessing Vault (%s) in dependent project %s: %s", project, type(e), str(e))
+            log.critical("Uncaught exception accessing Vault (%s) in dependent project %s: %s", project, type(e), str(e))
             raise e
 
-        log.warning("Error accessing Vault (%s) in project %s, skipping its pillars: %s", project, type(e), str(e))
+        log.warning("Uncaught exception accessing Vault (%s) in project %s, skipping its pillars: %s", project, type(e), str(e))
+        return {}
+
+    # in Salt 2019.2 HTTP errors are now being caught with None returned.
+    # this doesn't preclude an exception happening anywhere in between so the above try..catch is being preserved.
+    # -- https://github.com/saltstack/salt/blob/v2019.2.4/salt/modules/vault.py#L160-L172
+    if vault_value is None:
+        if project in dependent_projects:
+            err = "Error accessing Vault (%s) in dependent project: `None` returned" % (project, )
+            log.critical(err)
+            raise ValueError(err)
+
+        log.warning("Error accessing Vault (%s) in project, skipping it's pillars: `None` returned", project)
         return {}
 
     return _expand_vault_pillar(vault_value['data'])
