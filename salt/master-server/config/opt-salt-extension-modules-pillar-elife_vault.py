@@ -16,7 +16,7 @@ the ext_pillar section in the Salt master configuration.
 Each Vault key needs to have all the key-value pairs with the names you
 require. The dot ``.`` separates different nesting levels of the values:
 .. code-block:: bash
-    $ vault write secret/projects/elife-xpub/staging smtp.username=foo smtp.password=my_password
+    $ vault write secret/projects/elife-bot/staging smtp.username=foo smtp.password=my_password
 The above will result in ``pillar.smtp`` being available as a dictionary with two keys,
  which as for every external pillar will be merged with the rest of the pillars in the Salt master.
 
@@ -42,9 +42,10 @@ def ext_pillar(minion_id, pillar, path=None, env_key=None, dependent_projects=No
     ``dependent_projects`` is a list of project names where Salt should hard fail in case Vault is not accessible.
     '''
     try:
+        dependent_projects = dependent_projects or []
         project, vault_key = _render_vault_key(pillar, path, env_key)
     except KeyError as e:
-        log.warn("Stack %s does not have a grain: %s", __grains__.get('id'), e)
+        log.warning("Stack %s does not have a grain: %s", __grains__.get('id'), e)
         return {}
     log.info("Reading vault_key: %s", vault_key)
     try:
@@ -83,7 +84,7 @@ def _render_vault_key(pillar, path, env_key=None):
 def _expand_vault_pillar(data):
     '''
     Expands the empty vault_pillar with dictionaries
-    # {} => {'elife_xpub': {'smtp': {'username': 'foo'}}}
+    # {} => {'elife_bot': {'smtp': {'username': 'foo'}}}
     '''
 
     vault_pillar = {}
@@ -118,7 +119,7 @@ if __name__ == '__main__':
             in by Salt in a real environment
             '''
             global __grains__, __salt__
-            __grains__ = {'project': 'elife-xpub'}
+            __grains__ = {'project': 'elife-bot'}
             __salt__ = {'vault.read_secret': self._vault_read_secret}
             self._vault_secret = {'default_answer': 42}
             self._vault_exception = None
@@ -135,33 +136,33 @@ if __name__ == '__main__':
             return {'data': self._vault_secret}
 
         def test_builds_pillar_dictionary(self):
-            vault_pillar = ext_pillar('elife-xpub--staging--1', {}, path='secret/my-pillars')
+            vault_pillar = ext_pillar('elife-bot--staging--1', {}, path='secret/my-pillars')
             self.assertEqual(vault_pillar, {'default_answer': 42})
 
         def test_builds_nested_pillar_dictionary(self):
             self._vault_secret = {'smtp.username': 'foo', 'smtp.password': 'bar', 'orcid.secret': 'baz'}
-            vault_pillar = ext_pillar('elife-xpub--staging--1', {}, path='secret/my-pillars')
+            vault_pillar = ext_pillar('elife-bot--staging--1', {}, path='secret/my-pillars')
             self.assertEqual(vault_pillar, {'smtp': {'username': 'foo', 'password': 'bar'}, 'orcid': {'secret': 'baz'}})
 
         def test_renders_a_dynamic_vault_key(self):
             ext_pillar(
-                'elife-xpub--staging--1',
+                'elife-bot--staging--1',
                 {
                     'elife': {'env': 'staging'}
                 },
                 path='secret/my-pillars/{project}/{env}',
                 env_key=['elife', 'env']
             )
-            self.assertEqual(self._vault_key_read, 'secret/my-pillars/elife-xpub/staging')
+            self.assertEqual(self._vault_key_read, 'secret/my-pillars/elife-bot/staging')
 
         def test_exceptions_on_accessing_vault_are_caught_to_avoid_breaking_highstate(self):
             self._vault_exception = Exception("Cannot read missing key")
-            vault_pillar = ext_pillar('elife-xpub--staging--1', {}, path='secret/my-pillars')
+            vault_pillar = ext_pillar('elife-bot--staging--1', {}, path='secret/my-pillars')
             self.assertEqual(vault_pillar, {})
 
         def test_missing_grains_are_caught_to_avoid_breaking_highstate(self):
             self._set_grains({})
-            vault_pillar = ext_pillar('elife-xpub--staging--1', {}, path='secret/my-pillars')
+            vault_pillar = ext_pillar('elife-bot--staging--1', {}, path='secret/my-pillars')
             self.assertEqual(vault_pillar, {})
             
 
