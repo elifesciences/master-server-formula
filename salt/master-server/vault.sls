@@ -69,6 +69,15 @@ vault-systemd:
         - enable: True
         - require:
             - cmd: vault-systemd
+        # restart vault service when certificates change
+        # certificates not present in dev environments
+        {% if pillar.elife.env != 'dev' %}
+        - onchanges:
+            # the two files references in /etc/vault.hcl
+            # they're only modified when the certificate is regenerated
+            - web-fullchain-key
+            - web-private-key
+        {% endif %}
 
 {% if pillar.elife.env != 'dev' %}
 {% set vault_addr = 'https://' + salt['elife.cfg']('cfn.outputs.DomainName') + ':8200' %}
