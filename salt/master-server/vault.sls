@@ -153,7 +153,6 @@ vault-root-token:
 vault-token-smoke-test:
     cmd.run:
         - name: |
-            env
             vault token lookup > /dev/null
         - runas: {{ pillar.elife.deploy_user.username }}
         - require:
@@ -175,3 +174,20 @@ vault-policies:
         - require:
             - vault-token-smoke-test
 
+vault-file-audit-enabled:
+    file.managed:
+        - name: /var/log/vault_audit.log
+        # vault tries to chmod the file to manage it itself, write permissions are not enough, it must also be owner:
+        # - https://groups.google.com/g/vault-tool/c/XMiK3fKG-eA
+        - user: vault
+        - group: vault
+        - mode: 664
+        - require:
+            - vault-user
+
+    cmd.run:
+        - name: vault audit enable file file_path=/var/log/vault_audit.log
+        - runas:  {{ pillar.elife.deploy_user.username }}
+        - require:
+            - file: vault-file-audit-enabled
+            - vault-token-smoke-test
