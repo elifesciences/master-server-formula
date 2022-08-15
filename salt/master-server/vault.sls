@@ -188,6 +188,8 @@ vault-file-audit-enabled:
     cmd.run:
         - name: vault audit enable file file_path=/var/log/vault_audit.log
         - runas:  {{ pillar.elife.deploy_user.username }}
+        - unless:
+            - vault audit list | grep file
         - require:
             - file: vault-file-audit-enabled
             - vault-token-smoke-test
