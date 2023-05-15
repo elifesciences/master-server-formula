@@ -70,7 +70,10 @@ def ext_pillar(minion_id, pillar, path=None, env_key=None, dependent_projects=No
         log.warning("Error accessing Vault (%s) in project, skipping it's pillars: `None` returned", project)
         return {}
 
-    return _expand_vault_pillar(vault_value['data'])
+    # lsh@2021-05-13: 'fixed' in 3001: https://github.com/saltstack/salt/pull/55842
+    # data in KV2 is now unwrapped for us. If we want the metadata, we need to pass a parameter.
+    #return _expand_vault_pillar(vault_value['data'])
+    return _expand_vault_pillar(vault_value)
 
 def _render_vault_key(pillar, path, env_key=None):
     vault_key_context = {'project':__grains__['project']}
@@ -133,7 +136,10 @@ if __name__ == '__main__':
             if self._vault_exception:
                 raise self._vault_exception
             self._vault_key_read = vault_key
-            return {'data': self._vault_secret}
+            # lsh@2021-05-13: 'fixed' in 3001: https://github.com/saltstack/salt/pull/55842
+            # data in KV2 is now unwrapped for us. If we want the metadata, we need to pass a parameter.
+            #return {'data': self._vault_secret}
+            return self._vault_secret
 
         def test_builds_pillar_dictionary(self):
             vault_pillar = ext_pillar('elife-bot--staging--1', {}, path='secret/my-pillars')

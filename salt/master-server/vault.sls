@@ -153,7 +153,6 @@ vault-root-token:
 vault-token-smoke-test:
     cmd.run:
         - name: |
-            env
             vault token lookup > /dev/null
         - runas: {{ pillar.elife.deploy_user.username }}
         - require:
@@ -174,4 +173,56 @@ vault-policies:
         - file_mode: 444
         - require:
             - vault-token-smoke-test
+
+# ---
+
+{% if False %}
+
+vault-file-audit-enabled:
+    file.managed:
+        - name: /var/log/vault_audit.log
+        # vault tries to chmod the file to manage it itself, write permissions are not enough, it must also be owner:
+        # - https://groups.google.com/g/vault-tool/c/XMiK3fKG-eA
+        - user: vault
+        - group: vault
+        - mode: 664
+        - require:
+            - vault-user
+
+    cmd.run:
+        - name: vault audit enable file file_path=/var/log/vault_audit.log
+        - runas:  {{ pillar.elife.deploy_user.username }}
+        - unless:
+            - vault audit list | grep file
+        - require:
+            - file: vault-file-audit-enabled
+            - vault-token-smoke-test
+
+{% else %}
+
+vault-file-audit-disabled:
+    file.absent:
+        - name: /var/log/vault_audit.log
+    
+    cmd.run:
+        # unlike the 'enable' command, this one appears to be idempotent.
+        - name: vault audit disable file
+        - runas: {{ pillar.elife.deploy_user.username }}
+        - require:
+            - file: vault-file-audit-disabled
+            - vault-token-smoke-test
+
+{% endif %}
+
+# ---
+
+# 'recursive vault', handy tool for grepping vault contents
+# https://github.com/kir4h/rvault
+rvault-installed:
+    archive.extracted:
+        - name: /usr/bin/
+        - source: https://elife-cdn.s3.amazonaws.com/salt/rvault-v1.0.1-linux-amd64.tar.gz
+        - user: {{ pillar.elife.deploy_user.username }}
+        - source_hash: e51132b48947cf27f9f006123db955e4c07b2432ae5054a0765bae0220ce22fb
+        - enforce_toplevel: False # archive is a single top-level executable
 
