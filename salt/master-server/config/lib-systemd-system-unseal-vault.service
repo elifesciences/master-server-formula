@@ -1,0 +1,15 @@
+[Unit]
+Description="unseal Vault"
+After=vault.service
+Requires=vault.service
+PartOf=vault.service
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=oneshot
+User={{ deploy_user }}
+Environment="VAULT_ADDR={{ vault_addr }}"
+ExecStart=/home/{{ deploy_user }}/unseal-vault.sh
+RemainAfterExit=false

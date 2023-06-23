@@ -1,6 +1,15 @@
 {% set vault_version = '0.11.0' %}
 {% set vault_hash = 'ca9316e4864a9585f7c6507e38568053' %}
 {% set vault_archive = 'vault_' + vault_version + '_linux_amd64.zip' %}
+
+{% if pillar.elife.env != 'dev' %}
+{% set vault_addr = 'https://' + salt['elife.cfg']('cfn.outputs.DomainName') + ':8200' %}
+{% else %}
+{% set vault_addr = 'http://localhost:8200' %}
+{% endif %}
+
+{% set vault_init_log = '/home/' ~ pillar.elife.deploy_user.username ~ '/vault-init.log' %}
+
 vault-binary:
     file.managed:
         - name: /root/{{ vault_archive }}
@@ -79,11 +88,6 @@ vault-systemd:
             - web-private-key
         {% endif %}
 
-{% if pillar.elife.env != 'dev' %}
-{% set vault_addr = 'https://' + salt['elife.cfg']('cfn.outputs.DomainName') + ':8200' %}
-{% else %}
-{% set vault_addr = 'http://localhost:8200' %}
-{% endif %}
 vault-cli-client-environment-configuration:
     file.managed:
         - name: /etc/profile.d/vault-client.sh
@@ -94,6 +98,36 @@ vault-cli-client-environment-configuration:
     environ.setenv:
         - name: VAULT_ADDR
         - value: {{ vault_addr }}
+
+unseal-vault-script:
+    file.managed:
+        - name: /home/{{ pillar.elife.deploy_user.username }}/unseal-vault.sh
+        - source: salt://master-server/config/home-deploy-user-unseal-vault.sh
+        - template: jinja
+        - defaults:
+            deploy_user: {{ pillar.elife.deploy_user.username }}
+        - user: {{ pillar.elife.deploy_user.username }}
+        - mode: 740
+
+unseal-vault-systemd:
+    file.managed:
+        - name: /lib/systemd/system/unseal-vault.service
+        - source: salt://master-server/config/lib-systemd-system-unseal-vault.service
+        - defaults:
+            deploy_user: {{ pillar.elife.deploy_user.username }}
+            vault_addr: {{ vault_addr }}
+        - template: jinja
+
+    cmd.run:
+        - name: systemctl daemon-reload
+        - require:
+            - file: unseal-vault-systemd
+
+    service.enabled:
+        - name: unseal-vault
+        - require:
+            - unseal-vault-script
+            - cmd: unseal-vault-systemd
 
 # vault initialization requires a human, so the only thing we
 # can check on the first highstate is that a daemon is listening
@@ -110,26 +144,24 @@ vault-backup:
         - require:
             - install-ubr
 
-{% set vault_init_log = '/home/' ~ pillar.elife.deploy_user.username ~ '/vault-init.log' %}
-
 vault-init:
     cmd.run:
         - name: vault operator init -key-shares=1 -key-threshold=1 > {{ vault_init_log }}
         - unless:
+            # vault already initialised
             - test -d /var/lib/vault/core
         - require:
             - vault-bootstrap-smoke-test
 
 vault-unseal:
-    cmd.run:
-        - name: | 
-            grep Unseal {{ vault_init_log }} | sed -e 's/.*: //g' > /tmp/vault-unseal-key.log
-            bash -c 'vault operator unseal $(cat /tmp/vault-unseal-key.log)'
-            rm /tmp/vault-unseal-key.log
+    cmd.script:
+        - name:  /home/{{ pillar.elife.deploy_user.username }}/unseal-vault.sh
         - runas: {{ pillar.elife.deploy_user.username }}
         - onlyif:
+            # unseal key exists
             - test -e {{ vault_init_log }}
         - unless:
+            # already unlocked. returns 0 on unsealed, '2' on sealed.
             - vault status
         - require:
             - vault-init
