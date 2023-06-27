@@ -1,5 +1,6 @@
 #!/bin/bash
 # run as '{{ deploy_user }}'
+# unseals Vault if sealed using the key found in '~/vault-init.log'.
 set -e
 
 vault_init_log="/home/{{ deploy_user }}/vault-init.log"
