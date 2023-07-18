@@ -43,17 +43,25 @@ chemist-configuration:
         - require:
             - chemist-repository
 
-chemist-service-systemd:
+chemist-service:
     file.managed:
         - name: /lib/systemd/system/chemist.service
         - source: salt://master-server/config/lib-systemd-system-chemist.service
         - template: jinja
 
-chemist-service-start:
     cmd.run:
-        - name: |
-            systemctl stop chemist || echo "chemist was not running"
-            systemctl start chemist
+        - name: systemctl daemon-reload chemist
+        - onchanges:
+            - file: chemist-service
+
+    service.running:
+        - name: chemist
+        - enable: true
+        - watch:
+            - chemist-repository
+            - chemist-configuration
         - require:
             - chemist-repository
-            - chemist-service-systemd
+            - file: chemist-service
+            - cmd: chemist-service
+
