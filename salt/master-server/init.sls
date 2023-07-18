@@ -50,7 +50,7 @@ chemist-service:
         - template: jinja
 
     cmd.run:
-        - name: systemctl daemon-reload chemist
+        - name: systemctl daemon-reload
         - onchanges:
             - file: chemist-service
 
