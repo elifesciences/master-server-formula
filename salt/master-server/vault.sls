@@ -84,8 +84,8 @@ vault-systemd:
         - onchanges:
             # the two files references in /etc/vault.hcl
             # they're only modified when the certificate is regenerated
-            - web-fullchain-key
-            - web-private-key
+            - etc-certificates-fullchain-key
+            - etc-certificates-private-key
         {% endif %}
 
 vault-cli-client-environment-configuration:
