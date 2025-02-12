@@ -31,7 +31,7 @@ vault-symlink:
             - vault-binary
 
 vault-user:
-    user.present: 
+    user.present:
         - name: vault
         - groups:
             - vault
@@ -48,7 +48,7 @@ vault-folder:
 
 vault-configuration:
     file.managed:
-        - name: /etc/vault.hcl 
+        - name: /etc/vault.hcl
         - source: salt://master-server/config/etc-vault.hcl
         - template: jinja
         - user: vault
@@ -208,6 +208,21 @@ vault-policies:
 
 # ---
 
+vault-caddy-ready:
+    file.managed:
+        - name: /etc/caddy/sites.d/vault.conf
+        - source: salt://master-server/config/etc-caddy-sites.d-vault.conf
+        - template: jinja
+        - require:
+            - vault-unseal
+        - require_in:
+            - caddy-validate-config
+        # reload caddy if the configuration has changed
+        - watch_in:
+            - service: caddy-server-service
+
+# ---
+
 {% if False %}
 
 vault-file-audit-enabled:
@@ -235,7 +250,7 @@ vault-file-audit-enabled:
 vault-file-audit-disabled:
     file.absent:
         - name: /var/log/vault_audit.log
-    
+
     cmd.run:
         # unlike the 'enable' command, this one appears to be idempotent.
         - name: vault audit disable file
@@ -257,4 +272,3 @@ rvault-installed:
         - user: {{ pillar.elife.deploy_user.username }}
         - source_hash: e51132b48947cf27f9f006123db955e4c07b2432ae5054a0765bae0220ce22fb
         - enforce_toplevel: False # archive is a single top-level executable
-

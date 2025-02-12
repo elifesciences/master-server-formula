@@ -1,4 +1,7 @@
 elife:
+    webserver:
+        app: caddy
+        auto_https: true
     certificates:
         username: vault
 
