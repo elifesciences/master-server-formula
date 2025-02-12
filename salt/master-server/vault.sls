@@ -1,6 +1,9 @@
 {% set vault_version = '0.11.0' %}
-{% set vault_hash = 'ca9316e4864a9585f7c6507e38568053' %}
-{% set vault_archive = 'vault_' + vault_version + '_linux_amd64.zip' %}
+{% set vault_hashes = {
+    "amd64": "ca9316e4864a9585f7c6507e38568053",
+    "arm64": "e4b25ff2701c6bdf58e18c434bf34b1e",
+} %}
+{% set vault_archive = 'vault_' + vault_version + '_linux_' + grains['osarch'] + '.zip' %}
 
 {% if pillar.elife.env != 'dev' %}
 {% set vault_addr = 'https://' + salt['elife.cfg']('cfn.outputs.DomainName') + ':8200' %}
@@ -14,7 +17,7 @@ vault-binary:
     file.managed:
         - name: /root/{{ vault_archive }}
         - source: https://releases.hashicorp.com/vault/{{ vault_version }}/{{ vault_archive }}
-        - source_hash: md5={{ vault_hash }}
+        - source_hash: md5={{ vault_hashes[grains['osarch']] }}
 
     archive.extracted:
         - name: /opt/vault/
@@ -135,6 +138,8 @@ vault-bootstrap-smoke-test:
     cmd.run:
         - name: wait_for_port 8200 10
         - runas: {{ pillar.elife.deploy_user.username }}
+        - require:
+            - service: vault-systemd
 
 vault-backup:
     file.managed:
@@ -152,6 +157,8 @@ vault-init:
             - test -d /var/lib/vault/core
         - require:
             - vault-bootstrap-smoke-test
+        - env:
+            - VAULT_ADDR: {{ vault_addr }}
 
 vault-unseal:
     cmd.script:
@@ -165,6 +172,9 @@ vault-unseal:
             - vault status
         - require:
             - vault-init
+            - unseal-vault-script
+        - env:
+            - VAULT_ADDR: {{ vault_addr }}
 
 vault-status-smoke-test:
     cmd.run:
