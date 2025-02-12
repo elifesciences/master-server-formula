@@ -138,6 +138,8 @@ vault-bootstrap-smoke-test:
     cmd.run:
         - name: wait_for_port 8200 10
         - runas: {{ pillar.elife.deploy_user.username }}
+        - require:
+            - service: vault-systemd
 
 vault-backup:
     file.managed:
@@ -170,6 +172,9 @@ vault-unseal:
             - vault status
         - require:
             - vault-init
+            - unseal-vault-script
+        - env:
+            - VAULT_ADDR: {{ vault_addr }}
 
 vault-status-smoke-test:
     cmd.run:
