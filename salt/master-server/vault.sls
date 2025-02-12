@@ -218,6 +218,21 @@ vault-policies:
 
 # ---
 
+vault-caddy-ready:
+    file.managed:
+        - name: /etc/caddy/sites.d/vault.conf
+        - source: salt://master-server/config/etc-caddy-sites.d-vault.conf
+        - template: jinja
+        - require:
+            - vault-unseal
+        - require_in:
+            - caddy-validate-config
+        # reload caddy if the configuration has changed
+        - watch_in:
+            - service: caddy-server-service
+
+# ---
+
 {% if False %}
 
 vault-file-audit-enabled:

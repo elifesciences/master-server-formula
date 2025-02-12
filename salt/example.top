@@ -1,6 +1,7 @@
 base:
     '*':
         - elife
+        - elife.caddy
         - elife.certificates
         - master-server
         - master-server.vault
