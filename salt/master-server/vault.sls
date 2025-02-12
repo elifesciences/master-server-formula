@@ -31,7 +31,7 @@ vault-symlink:
             - vault-binary
 
 vault-user:
-    user.present: 
+    user.present:
         - name: vault
         - groups:
             - vault
@@ -48,7 +48,7 @@ vault-folder:
 
 vault-configuration:
     file.managed:
-        - name: /etc/vault.hcl 
+        - name: /etc/vault.hcl
         - source: salt://master-server/config/etc-vault.hcl
         - template: jinja
         - user: vault
@@ -152,6 +152,8 @@ vault-init:
             - test -d /var/lib/vault/core
         - require:
             - vault-bootstrap-smoke-test
+        - env:
+            - VAULT_ADDR: {{ vault_addr }}
 
 vault-unseal:
     cmd.script:
@@ -235,7 +237,7 @@ vault-file-audit-enabled:
 vault-file-audit-disabled:
     file.absent:
         - name: /var/log/vault_audit.log
-    
+
     cmd.run:
         # unlike the 'enable' command, this one appears to be idempotent.
         - name: vault audit disable file
@@ -257,4 +259,3 @@ rvault-installed:
         - user: {{ pillar.elife.deploy_user.username }}
         - source_hash: e51132b48947cf27f9f006123db955e4c07b2432ae5054a0765bae0220ce22fb
         - enforce_toplevel: False # archive is a single top-level executable
-
