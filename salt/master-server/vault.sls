@@ -157,6 +157,7 @@ vault-init:
             - test -d /var/lib/vault/core
         - require:
             - vault-bootstrap-smoke-test
+            - vault-caddy-ready
         - env:
             - VAULT_ADDR: {{ vault_addr }}
 
