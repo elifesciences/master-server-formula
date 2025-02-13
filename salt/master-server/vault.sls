@@ -226,7 +226,7 @@ vault-caddy-ready:
         - source: salt://master-server/config/etc-caddy-sites.d-vault.conf
         - template: jinja
         - require:
-            - vault-init
+            - vault-bootstrap-smoke-test
         - require_in:
             - caddy-validate-config
         # reload caddy if the configuration has changed
