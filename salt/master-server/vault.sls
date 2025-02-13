@@ -81,10 +81,12 @@ vault-systemd:
         - enable: True
         - require:
             - cmd: vault-systemd
+        - watch:
+            - vault-configuration
+
         # restart vault service when certificates change
         # certificates not present in dev environments
         {% if pillar.elife.env != 'dev' %}
-        - onchanges:
             # the two files references in /etc/vault.hcl
             # they're only modified when the certificate is regenerated
             - etc-certificates-fullchain-key
@@ -136,7 +138,7 @@ unseal-vault-systemd:
 # can check on the first highstate is that a daemon is listening
 vault-bootstrap-smoke-test:
     cmd.run:
-        - name: wait_for_port 8200 10
+        - name: wait_for_port 8201 10
         - runas: {{ pillar.elife.deploy_user.username }}
         - require:
             - service: vault-systemd
@@ -157,6 +159,7 @@ vault-init:
             - test -d /var/lib/vault/core
         - require:
             - vault-bootstrap-smoke-test
+            - vault-caddy-smoke-test
         - env:
             - VAULT_ADDR: {{ vault_addr }}
 
@@ -173,6 +176,7 @@ vault-unseal:
         - require:
             - vault-init
             - unseal-vault-script
+            - vault-caddy-smoke-test
         - env:
             - VAULT_ADDR: {{ vault_addr }}
 
@@ -224,11 +228,23 @@ vault-caddy-ready:
         - source: salt://master-server/config/etc-caddy-sites.d-vault.conf
         - template: jinja
         - require:
-            - vault-unseal
+            - vault-bootstrap-smoke-test
+        - watch:
+            - service: vault-systemd
         - require_in:
             - caddy-validate-config
         # reload caddy if the configuration has changed
         - watch_in:
+            - service: caddy-server-service
+
+vault-caddy-smoke-test:
+    cmd.run:
+        - name: |
+            wait_for_port 8200 10
+            curl {{ vault_addr }}
+        - runas: {{ pillar.elife.deploy_user.username }}
+        - require:
+            - vault-caddy-ready
             - service: caddy-server-service
 
 # ---
