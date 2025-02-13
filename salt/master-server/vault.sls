@@ -81,12 +81,12 @@ vault-systemd:
         - enable: True
         - require:
             - cmd: vault-systemd
+        - onchanges:
+            - vault-configuration
+
         # restart vault service when certificates change
         # certificates not present in dev environments
-        - watch:
-            - vault-configuration
         {% if pillar.elife.env != 'dev' %}
-        - onchanges:
             # the two files references in /etc/vault.hcl
             # they're only modified when the certificate is regenerated
             - etc-certificates-fullchain-key
