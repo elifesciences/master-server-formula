@@ -81,7 +81,7 @@ vault-systemd:
         - enable: True
         - require:
             - cmd: vault-systemd
-        - onchanges:
+        - watch:
             - vault-configuration
 
         # restart vault service when certificates change
