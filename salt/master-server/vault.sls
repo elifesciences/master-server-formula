@@ -159,7 +159,7 @@ vault-init:
             - test -d /var/lib/vault/core
         - require:
             - vault-bootstrap-smoke-test
-            - vault-caddy-ready
+            - vault-caddy-smoke-test
         - env:
             - VAULT_ADDR: {{ vault_addr }}
 
@@ -176,7 +176,7 @@ vault-unseal:
         - require:
             - vault-init
             - unseal-vault-script
-            - vault-caddy-ready
+            - vault-caddy-smoke-test
         - env:
             - VAULT_ADDR: {{ vault_addr }}
 
@@ -235,6 +235,16 @@ vault-caddy-ready:
             - caddy-validate-config
         # reload caddy if the configuration has changed
         - watch_in:
+            - service: caddy-server-service
+
+vault-caddy-smoke-test:
+    cmd.run:
+        - name: |
+            wait_for_port 8200 10
+            curl {{ vault_addr }}
+        - runas: {{ pillar.elife.deploy_user.username }}
+        - require:
+            - vault-caddy-ready
             - service: caddy-server-service
 
 debug_caddy:
