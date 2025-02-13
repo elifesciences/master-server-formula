@@ -83,6 +83,8 @@ vault-systemd:
             - cmd: vault-systemd
         # restart vault service when certificates change
         # certificates not present in dev environments
+        - watch:
+            - vault-configuration
         {% if pillar.elife.env != 'dev' %}
         - onchanges:
             # the two files references in /etc/vault.hcl
