@@ -229,6 +229,8 @@ vault-caddy-ready:
         - template: jinja
         - require:
             - vault-bootstrap-smoke-test
+        - watch:
+            service: vault-systemd
         - require_in:
             - caddy-validate-config
         # reload caddy if the configuration has changed
