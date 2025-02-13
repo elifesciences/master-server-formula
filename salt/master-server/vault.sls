@@ -173,6 +173,7 @@ vault-unseal:
         - require:
             - vault-init
             - unseal-vault-script
+            - vault-caddy-ready
         - env:
             - VAULT_ADDR: {{ vault_addr }}
 
@@ -224,7 +225,7 @@ vault-caddy-ready:
         - source: salt://master-server/config/etc-caddy-sites.d-vault.conf
         - template: jinja
         - require:
-            - vault-unseal
+            - vault-init
         - require_in:
             - caddy-validate-config
         # reload caddy if the configuration has changed
