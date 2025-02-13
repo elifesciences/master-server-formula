@@ -136,7 +136,7 @@ unseal-vault-systemd:
 # can check on the first highstate is that a daemon is listening
 vault-bootstrap-smoke-test:
     cmd.run:
-        - name: wait_for_port 8200 10
+        - name: wait_for_port 8201 10
         - runas: {{ pillar.elife.deploy_user.username }}
         - require:
             - service: vault-systemd
