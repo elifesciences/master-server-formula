@@ -237,6 +237,14 @@ vault-caddy-ready:
         - watch_in:
             - service: caddy-server-service
 
+debug_caddy:
+  cmd.run:
+    - name: |
+        systemctl status caddy.service
+        journalctl -xeu caddy --no-pager
+    - onfail:
+      - service: caddy-server-service
+
 # ---
 
 {% if False %}
